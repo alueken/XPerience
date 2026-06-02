@@ -135,7 +135,7 @@
                 </div>
 
                 <!-- Live Track Indicator -->
-                <div class="hidden md:flex items-center space-x-1.5 bg-indigo-50 text-indigo-700 px-3 py-1.5 rounded-full text-xs font-semibold">
+                <div class="hidden md:flex items-center space-x-1.5 bg-indigo-50 text-indigo-700 px-3 py-1.5 rounded-full text-xs font-semibold animate-pulse">
                     <span class="relative flex h-2 w-2">
                         <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-indigo-400 opacity-75"></span>
                         <span class="relative inline-flex rounded-full h-2 w-2 bg-indigo-500"></span>
@@ -828,7 +828,19 @@
         // Import Firebase & Firestore SDK elements safely
         import { initializeApp } from 'https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js';
         import { getAuth, signInWithCustomToken, signInAnonymously, onAuthStateChanged, GoogleAuthProvider, signInWithPopup } from 'https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js';
-        import { getFirestore, doc, setDoc, getDoc, collection, query, onSnapshot, addDoc, updateDoc } from 'https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js';
+        // ----------------------------------------------------------------------
+        // 1. CONFIGURE YOUR FIREBASE CREDENTIALS HERE!
+        // ----------------------------------------------------------------------
+        // When you are ready to link the cloud database and Google Authentication,
+        // replace the keys in this object with the ones from your Firebase Console.
+        const myHardcodedConfig = {
+            apiKey: "AIzaSyDQInxlD0m1Vt7ETS6VaD-752UM-TeQA44",
+            authDomain: "xperience-internship.firebaseapp.com",
+            projectId: "xperience-internship",
+            storageBucket: "xperience-internship.firebasestorage.app",
+            messagingSenderId: "624385133038",
+            appId: "1:624385133038:web:1bd5ca01452b719881a6ff"
+        };
 
         // ----------------------------------------------------
         // FIREBASE SETUP WITH SECURE FALLBACKS (MANDATORY RULES)
@@ -838,19 +850,18 @@
         let appId = 'xperience-intern-cohort';
 
         try {
-            const firebaseConfig = {
-                  apiKey: "AIzaSyDQInxlD0m1Vt7ETS6VaD-752UM-TeQA44",
-                  authDomain: "xperience-internship.firebaseapp.com",
-                  projectId: "xperience-internship",
-                  storageBucket: "xperience-internship.firebasestorage.app",
-                  messagingSenderId: "624385133038",
-                  appId: "1:624385133038:web:1bd5ca01452b719881a6ff"
-                };
-                
-            if (!firebaseConfig || !firebaseConfig.apiKey) {
+            // Favor the explicit key setup, or check the system's token
+            let activeConfig = null;
+            if (myHardcodedConfig && myHardcodedConfig.apiKey) {
+                activeConfig = myHardcodedConfig;
+            } else {
+                activeConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : null;
+            }
+
+            if (!activeConfig || !activeConfig.apiKey) {
                 throw new Error("Missing Firebase Credentials Configuration.");
             }
-            const app = initializeApp(firebaseConfig);
+            const app = initializeApp(activeConfig);
             auth = getAuth(app);
             db = getFirestore(app);
             appId = typeof __app_id !== 'undefined' ? __app_id : 'xperience-intern-cohort';
@@ -917,7 +928,7 @@
                 console.warn("Firebase Auth Connection took too long. Auto-launching safe local sandbox workspace.");
                 switchToLocalFallback();
             }
-        }, 3500);
+        }, 8000);
 
         // Listen for Auth changes
         if (auth) {
