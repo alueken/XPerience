@@ -28,6 +28,13 @@
         .scrollbar-thin::-webkit-scrollbar-thumb:hover {
             background: #94a3b8;
         }
+        @keyframes loading-slide {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(200%); }
+        }
+        .animate-infinite-loading {
+            animation: loading-slide 1.5s infinite linear;
+        }
     </style>
 </head>
 <body class="bg-slate-50 text-slate-800 antialiased min-h-screen flex flex-col">
@@ -52,7 +59,7 @@
                         <path fill="#FBBC05" d="M5.37 14.5c-.24-.72-.37-1.49-.37-2.3c0-.81.13-1.58.37-2.3L1.51 6.9C.54 8.84 0 11.02 0 13.3c0 2.28.54 4.46 1.51 6.4l3.86-3z"/>
                         <path fill="#34A853" d="M12 23c3.24 0 5.97-1.07 7.96-2.91l-3.72-2.88c-1.1.74-2.5 1.18-4.24 1.18-3.07 0-5.73-2.73-6.63-5.46l-3.86 3C3.4 19.35 7.35 23 12 23z"/>
                     </svg>
-                    <span>Continue with Google</span>
+                    <span id="btn-google-login-text">Continue with Google</span>
                 </button>
 
                 <div class="relative flex items-center py-2">
@@ -106,8 +113,8 @@
                 <p class="text-sm font-bold text-white tracking-wide">Syncing Workspace with XPerience Cloud...</p>
                 <p class="text-xs text-slate-400">Securing environment & authenticating profile</p>
             </div>
-            <div class="w-48 h-1 bg-slate-800 rounded-full mx-auto overflow-hidden">
-                <div class="h-full bg-indigo-500 animate-infinite-loading w-1/2 rounded-full"></div>
+            <div class="w-48 h-1 bg-slate-800 rounded-full mx-auto overflow-hidden relative">
+                <div class="h-full bg-indigo-500 animate-infinite-loading w-1/2 rounded-full absolute left-0 top-0"></div>
             </div>
         </div>
     </div>
@@ -826,11 +833,31 @@
         // ----------------------------------------------------
         // FIREBASE SETUP WITH SECURE FALLBACKS (MANDATORY RULES)
         // ----------------------------------------------------
-        const appId = typeof __app_id !== 'undefined' ? __app_id : 'xperience-intern-cohort';
-        const firebaseConfig = JSON.parse(__firebase_config);
-        const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
-        const db = getFirestore(app);
+        let db, auth;
+        let useLocalFallback = false;
+        let appId = 'xperience-intern-cohort';
+
+        try {
+            const firebaseConfig = {
+                  apiKey: "AIzaSyDQInxlD0m1Vt7ETS6VaD-752UM-TeQA44",
+                  authDomain: "xperience-internship.firebaseapp.com",
+                  projectId: "xperience-internship",
+                  storageBucket: "xperience-internship.firebasestorage.app",
+                  messagingSenderId: "624385133038",
+                  appId: "1:624385133038:web:1bd5ca01452b719881a6ff"
+                };
+                
+            if (!firebaseConfig || !firebaseConfig.apiKey) {
+                throw new Error("Missing Firebase Credentials Configuration.");
+            }
+            const app = initializeApp(firebaseConfig);
+            auth = getAuth(app);
+            db = getFirestore(app);
+            appId = typeof __app_id !== 'undefined' ? __app_id : 'xperience-intern-cohort';
+        } catch (e) {
+            console.warn("Firebase was not initialized, falling back cleanly to client Sandbox Offline state.", e);
+            useLocalFallback = true;
+        }
 
         // Core App In-Memory State
         let currentUserId = null;
@@ -846,6 +873,11 @@
         let cachedLogs = [];
         let cachedProfiles = [];
 
+        // Local Sandbox Fallback arrays (seeded on-demand)
+        let localProfiles = [];
+        let localTasks = [];
+        let localLogs = [];
+
         // Dynamic Default Training Resources
         const resources = [
             { id: "RES-001", title: "OpenBraille System Overview & Schematics", track: "openbraille", desc: "An analytical breakdown of OpenBraille mechanisms, CAD dimension criteria, micro-controller wiring configurations, and pin layout guides.", author: "XPerience Advisory Board", linkName: "Get CAD & Code Guidelines", icon: "cpu" },
@@ -859,6 +891,10 @@
         // INITIAL FIREBASE AUTHENTICATION FLOW (RULE 3)
         // ----------------------------------------------------
         const initAuthentication = async () => {
+            if (useLocalFallback) {
+                switchToLocalFallback();
+                return;
+            }
             try {
                 if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
                     await signInWithCustomToken(auth, __initial_auth_token);
@@ -866,32 +902,276 @@
                     await signInAnonymously(auth);
                 }
             } catch (error) {
-                console.error("Authentication setup failed, retrying...", error);
-                // Attempt simple anonymous fallback
+                console.error("Authentication setup failed, retrying anonymous setup...", error);
                 try {
                     await signInAnonymously(auth);
                 } catch (retryError) {
-                    showToast("Could not establish anonymous secure connection. Reloading page.");
+                    switchToLocalFallback();
                 }
             }
         };
 
-        // Listen for Auth changes
-        onAuthStateChanged(auth, async (user) => {
-            if (user) {
-                currentUserId = user.uid;
-                await verifyUserProfile(user.uid);
-            } else {
-                currentUserId = null;
-                document.getElementById('connection-loader').classList.remove('hidden');
+        // SAFETY AUTHENTICATION TIMER: Launches Sandbox mode automatically if Firebase hangs (e.g. 3.5 seconds)
+        const authTimeout = setTimeout(() => {
+            if (!currentUserId) {
+                console.warn("Firebase Auth Connection took too long. Auto-launching safe local sandbox workspace.");
+                switchToLocalFallback();
             }
-        });
+        }, 3500);
+
+        // Listen for Auth changes
+        if (auth) {
+            onAuthStateChanged(auth, async (user) => {
+                if (user) {
+                    clearTimeout(authTimeout);
+                    currentUserId = user.uid;
+                    await verifyUserProfile(user.uid);
+                } else {
+                    if (!useLocalFallback) {
+                        currentUserId = null;
+                        document.getElementById('connection-loader').classList.remove('hidden');
+                    }
+                }
+            });
+        }
+
+        // ----------------------------------------------------
+        // OFFLINE SANDBOX ADAPTER (GUARANTEES APPLICATION IS NEVER STUCK)
+        // ----------------------------------------------------
+        const switchToLocalFallback = () => {
+            clearTimeout(authTimeout);
+            useLocalFallback = true;
+            currentUserId = "sandbox-user-id";
+            
+            document.getElementById('cohort-active-label').innerText = "Running Sandbox Offline Mode";
+            document.getElementById('cohort-active-label').parentElement.className = "hidden md:flex items-center space-x-1.5 bg-amber-50 text-amber-700 px-3 py-1.5 rounded-full text-xs font-semibold";
+            document.getElementById('btn-google-login-text').innerText = "Simulate Google Login";
+
+            loadLocalSandboxData();
+
+            // Check if profile exists, otherwise trigger overlay
+            const myProfile = localProfiles.find(p => p.uid === currentUserId);
+            if (myProfile) {
+                currentUserProfile = myProfile;
+                enterAppWorkspace();
+                showToast("Connected via Sandbox Mode. All logs and changes are saved locally!");
+            } else {
+                document.getElementById('connection-loader').classList.add('hidden');
+                document.getElementById('onboarding-overlay').classList.remove('hidden');
+                showToast("Sandbox initialized. Create your offline profile!");
+            }
+        };
+
+        const loadLocalSandboxData = () => {
+            const storedTasks = localStorage.getItem('xp_tasks');
+            if (storedTasks) {
+                localTasks = JSON.parse(storedTasks);
+            } else {
+                localTasks = [
+                    {
+                        dbId: "task_1",
+                        id: "TSK-001",
+                        title: "Refine Lesson Kit 1 (Sensors & Microcontrollers)",
+                        track: "STEM Camps",
+                        desc: "Check-out standard component inventory, assemble 15 breadboard prototyping packets for middle schoolers, and ensure resistors are pre-sorted.",
+                        assignee: "Leila Chen",
+                        due: "2026-06-12",
+                        status: "In Progress",
+                        evidence: "",
+                        feedback: "",
+                        activity: [{ date: "2026-06-02", note: "Task created and assigned to Leila Chen" }]
+                    },
+                    {
+                        dbId: "task_2",
+                        id: "TSK-002",
+                        title: "Draft Curriculum Outline for Advanced Robotics Future Camp",
+                        track: "STEM Camps",
+                        desc: "Develop lesson timeline focusing on motor drivers, introductory state machines, and coding obstacle course logic.",
+                        assignee: "Alex Rivera",
+                        due: "2026-06-18",
+                        status: "Backlog",
+                        evidence: "",
+                        feedback: "",
+                        activity: []
+                    },
+                    {
+                        dbId: "task_3",
+                        id: "TSK-003",
+                        title: "Regional Bakery Logistics & Software Assessment",
+                        track: "Client Solutions",
+                        desc: "Map workflow from initial order submission to delivery path, identify manual steps in the spreadsheets, and design proposed automated software database layout.",
+                        assignee: "Alex Rivera",
+                        due: "2026-06-08",
+                        status: "Review",
+                        evidence: "https://docs.google.com/document/d/1BakeryProposalDraftXP2026/edit",
+                        feedback: "Excellent layout. Please simplify database ERD symbols so client can easily digest design during presentation.",
+                        activity: [
+                            { date: "2026-06-01", note: "Task assigned to Alex Rivera" },
+                            { date: "2026-06-02", note: "Alex Rivera submitted evidence link: https://docs.google.com/document/d/1BakeryProposalDraftXP2026/edit" }
+                        ]
+                    },
+                    {
+                        dbId: "task_4",
+                        id: "TSK-004",
+                        title: "Prototyping Tactile Pins on 3D Printer",
+                        track: "OpenBraille",
+                        desc: "Run 3 batch iterations of Braille solenoid actuation pin geometries on the Bambu labs 3D printer. Minimize spacing, check physical fit inside actuator frame.",
+                        assignee: "Marcus Johnson",
+                        due: "2026-06-05",
+                        status: "In Progress",
+                        evidence: "",
+                        feedback: "",
+                        activity: [{ date: "2026-06-02", note: "Marcus updated progress: Pin tolerances look tight. Print v2 is underway." }]
+                    }
+                ];
+                localStorage.setItem('xp_tasks', JSON.stringify(localTasks));
+            }
+
+            const storedLogs = localStorage.getItem('xp_logs');
+            if (storedLogs) {
+                localLogs = JSON.parse(storedLogs);
+            } else {
+                localLogs = [
+                    {
+                        dbId: "log_1",
+                        id: "LOG-001",
+                        type: "daily",
+                        intern: "Alex Rivera",
+                        track: "Client Solutions",
+                        hours: 4.5,
+                        timestamp: "2026-06-02T11:30:00.000Z",
+                        data: {
+                            completed: "Drafted database structure for the Regional Bakery order flow app, completed draft proposal presentation deck.",
+                            challenges: "Struggling to figure out if we should use MySQL or a lighter JSON backend to minimize client cloud server expense.",
+                            link: "https://docs.google.com/document/d/1BakeryProposalDraftXP2026/edit"
+                        },
+                        feedback: "Use lightweight Postgres hosted on Supabase free-tier instead of heavy databases. Happy to help scope details tomorrow."
+                    },
+                    {
+                        dbId: "log_2",
+                        id: "LOG-002",
+                        type: "daily",
+                        intern: "Leila Chen",
+                        track: "STEM Camps",
+                        hours: 6.0,
+                        timestamp: "2026-06-01T16:15:00.000Z",
+                        data: {
+                            completed: "Finalized instructional slides for day 1 of Sensors Camp. Laid out safety protocols for soldering.",
+                            challenges: "Sourcing cheap multimeters is taking longer. Budget constraints mean we can only buy 10.",
+                            link: ""
+                        },
+                        feedback: "Good work. I reached out to a regional hardware partner; we might secure 10 donor multimeters by Friday!"
+                    }
+                ];
+                localStorage.setItem('xp_logs', JSON.stringify(localLogs));
+            }
+
+            const storedProfiles = localStorage.getItem('xp_profiles');
+            if (storedProfiles) {
+                localProfiles = JSON.parse(storedProfiles);
+            } else {
+                localProfiles = [
+                    { uid: "sandbox-user-id", name: "Alex Rivera", email: "alex@xperience.org", track: "Client Solutions", role: "Product/CS Intern", joinedAt: new Date().toISOString() },
+                    { uid: "leila-uid", name: "Leila Chen", email: "leila@xperience.org", track: "STEM Camps", role: "Curriculum Specialist", joinedAt: new Date().toISOString() },
+                    { uid: "marcus-uid", name: "Marcus Johnson", email: "marcus@xperience.org", track: "OpenBraille", role: "Hardware Architect", joinedAt: new Date().toISOString() }
+                ];
+                localStorage.setItem('xp_profiles', JSON.stringify(localProfiles));
+            }
+        };
+
+        // ----------------------------------------------------
+        // ROBUST DATA ABSTRACT LAYER (RULE 1 & 2 SAFE WRAPPERS)
+        // ----------------------------------------------------
+        const saveProfile = async (uid, profileData) => {
+            if (useLocalFallback) {
+                const idx = localProfiles.findIndex(p => p.uid === uid);
+                if (idx > -1) localProfiles[idx] = profileData;
+                else localProfiles.push(profileData);
+                localStorage.setItem('xp_profiles', JSON.stringify(localProfiles));
+                triggerProfilesUpdate();
+                return;
+            }
+            const profileRef = doc(db, 'artifacts', appId, 'public', 'data', 'profiles', uid);
+            await setDoc(profileRef, profileData);
+        };
+
+        const addTask = async (taskData) => {
+            if (useLocalFallback) {
+                const dbId = 'task_' + Date.now();
+                const newTask = { dbId, ...taskData };
+                localTasks.push(newTask);
+                localStorage.setItem('xp_tasks', JSON.stringify(localTasks));
+                triggerTasksUpdate();
+                return;
+            }
+            const tasksCollection = collection(db, 'artifacts', appId, 'public', 'data', 'tasks');
+            await addDoc(tasksCollection, taskData);
+        };
+
+        const updateTask = async (dbId, updates) => {
+            if (useLocalFallback) {
+                const idx = localTasks.findIndex(t => t.dbId === dbId);
+                if (idx > -1) {
+                    localTasks[idx] = { ...localTasks[idx], ...updates };
+                    localStorage.setItem('xp_tasks', JSON.stringify(localTasks));
+                    triggerTasksUpdate();
+                }
+                return;
+            }
+            const taskDocRef = doc(db, 'artifacts', appId, 'public', 'data', 'tasks', dbId);
+            await updateDoc(taskDocRef, updates);
+        };
+
+        const addLog = async (logData) => {
+            if (useLocalFallback) {
+                const dbId = 'log_' + Date.now();
+                const newLog = { dbId, ...logData };
+                localLogs.push(newLog);
+                localStorage.setItem('xp_logs', JSON.stringify(localLogs));
+                triggerLogsUpdate();
+                return;
+            }
+            const logsCollection = collection(db, 'artifacts', appId, 'public', 'data', 'logs');
+            await addDoc(logsCollection, logData);
+        };
+
+        const updateLog = async (dbId, updates) => {
+            if (useLocalFallback) {
+                const idx = localLogs.findIndex(l => l.dbId === dbId);
+                if (idx > -1) {
+                    localLogs[idx] = { ...localLogs[idx], ...updates };
+                    localStorage.setItem('xp_logs', JSON.stringify(localLogs));
+                    triggerLogsUpdate();
+                }
+                return;
+            }
+            const logDocRef = doc(db, 'artifacts', appId, 'public', 'data', 'logs', dbId);
+            await updateDoc(logDocRef, updates);
+        };
+
+        const triggerProfilesUpdate = () => {
+            cachedProfiles = localProfiles;
+            renderCohortDirectory(localProfiles);
+            populateAssigneeDropdown(localProfiles);
+            recalculateSummaryStats();
+        };
+
+        const triggerTasksUpdate = () => {
+            cachedTasks = localTasks;
+            renderAllTasks();
+            recalculateSummaryStats();
+        };
+
+        const triggerLogsUpdate = () => {
+            cachedLogs = [...localLogs].sort((a,b) => new Date(b.timestamp) - new Date(a.timestamp));
+            renderLogsStream();
+            recalculateSummaryStats();
+        };
 
         // ----------------------------------------------------
         // PROFILE ENGINE (ONBOARDING FOR MULTIPLE INTERNS)
         // ----------------------------------------------------
         const verifyUserProfile = async (uid) => {
-            // Check Rule 1 Strict Path for Profile
             const profileRef = doc(db, 'artifacts', appId, 'public', 'data', 'profiles', uid);
             try {
                 const profileSnap = await getDoc(profileRef);
@@ -899,15 +1179,12 @@
                     currentUserProfile = profileSnap.data();
                     enterAppWorkspace();
                 } else {
-                    // Show custom onboarding form overlay for new intern account creation
                     document.getElementById('connection-loader').classList.add('hidden');
                     document.getElementById('onboarding-overlay').classList.remove('hidden');
                 }
             } catch (error) {
                 console.error("Error checking user profile record:", error);
-                // Assume first-time setup needed or fallback
-                document.getElementById('connection-loader').classList.add('hidden');
-                document.getElementById('onboarding-overlay').classList.remove('hidden');
+                switchToLocalFallback();
             }
         };
 
@@ -934,9 +1211,7 @@
             };
 
             try {
-                // Save profile to Firestore using Rule 1 Strict Path
-                const profileRef = doc(db, 'artifacts', appId, 'public', 'data', 'profiles', currentUserId);
-                await setDoc(profileRef, newProfile);
+                await saveProfile(currentUserId, newProfile);
                 currentUserProfile = newProfile;
                 
                 document.getElementById('onboarding-overlay').classList.add('hidden');
@@ -950,18 +1225,25 @@
 
         // Handle Google Auth Popup Trigger
         document.getElementById('btn-google-login').addEventListener('click', async () => {
+            if (useLocalFallback) {
+                // Instantly simulate a mock successful pre-filled login if offline fallback
+                document.getElementById('onboard-name').value = "Alex Rivera";
+                document.getElementById('onboard-email').value = "alex@xperience.org";
+                document.getElementById('onboard-role').value = "Product/CS Intern";
+                showToast("Mock Google login pre-filled successfully!");
+                return;
+            }
             try {
                 const provider = new GoogleAuthProvider();
                 const result = await signInWithPopup(auth, provider);
                 const user = result.user;
                 
-                // Pre-fill fields on the onboarding registration panel automatically
                 document.getElementById('onboard-name').value = user.displayName || "";
                 document.getElementById('onboard-email').value = user.email || "";
                 
                 showToast(`Authenticated Google Account: ${user.email}`);
 
-                // Quickly check if a workspace profile is already mapped to this Google UID
+                // Quickly check if profile exists
                 const profileRef = doc(db, 'artifacts', appId, 'public', 'data', 'profiles', user.uid);
                 const profileSnap = await getDoc(profileRef);
                 if (profileSnap.exists()) {
@@ -974,7 +1256,7 @@
                 }
             } catch (err) {
                 console.error("Google Sign-In Error:", err);
-                showToast("Sign-in popup blocked or failed. Please fill manually.");
+                showToast("Sign-in failed. Please register manually below.");
             }
         });
 
@@ -982,28 +1264,31 @@
         // ACTIVE WORKSPACE LOAD & REAL-TIME STREAM LISTENERS
         // ----------------------------------------------------
         const enterAppWorkspace = () => {
-            // Remove Loader screen
             document.getElementById('connection-loader').classList.add('hidden');
 
-            // Setup Header Profile visual identifiers
             document.getElementById('profile-name').innerText = currentUserProfile.name;
             document.getElementById('profile-role').innerText = currentUserProfile.role;
             
-            // Get initials for profile avatar
             const initials = currentUserProfile.name.split(' ').map(n => n[0]).join('').toUpperCase().substring(0,2);
             document.getElementById('avatar-user').innerText = initials;
 
-            // Set Form Defaults
             document.getElementById('daily-name').value = currentUserProfile.name;
             document.getElementById('weekly-name').value = currentUserProfile.name;
 
-            // Start Real-Time streams (Rule 1 Strict Path + Rule 2 Simple queries)
             startRealtimeSyncStreams();
             setupInteractiveEventListeners();
         };
 
         const startRealtimeSyncStreams = () => {
             if (!currentUserId) return;
+
+            if (useLocalFallback) {
+                triggerProfilesUpdate();
+                triggerTasksUpdate();
+                triggerLogsUpdate();
+                renderResources();
+                return;
+            }
 
             // 1. Live Cohort Directory Stream
             const profilesRef = collection(db, 'artifacts', appId, 'public', 'data', 'profiles');
@@ -1028,7 +1313,6 @@
                     tasksList.push({ dbId: docSnap.id, ...docSnap.data() });
                 });
                 
-                // If the collection is brand new and empty, seed it with initial setup tasks
                 if (tasksList.length === 0) {
                     seedDefaultTasks();
                 } else {
@@ -1048,7 +1332,6 @@
                     logsList.push({ dbId: docSnap.id, ...docSnap.data() });
                 });
                 
-                // Sort in memory (Rule 2 mandates sorting/ordering in memory rather than compound firestore queries)
                 logsList.sort((a,b) => new Date(b.timestamp) - new Date(a.timestamp));
                 cachedLogs = logsList;
                 renderLogsStream();
@@ -1060,9 +1343,7 @@
             renderResources();
         };
 
-        // ----------------------------------------------------
-        // FIRESTORE SEED GENERATOR (IF EMPTY INSTANCE)
-        // ----------------------------------------------------
+        // Seed default Tasks on empty Cloud instances
         const seedDefaultTasks = async () => {
             const seedTasks = [
                 {
@@ -1082,7 +1363,7 @@
                     title: "Draft Curriculum Outline for Advanced Robotics Future Camp",
                     track: "STEM Camps",
                     desc: "Develop lesson timeline focusing on motor drivers, introductory state machines, and coding obstacle course logic.",
-                    assignee: currentUserProfile.name, // Assign to first registrant
+                    assignee: currentUserProfile.name,
                     due: "2026-06-18",
                     status: "Backlog",
                     evidence: "",
@@ -1099,25 +1380,12 @@
                     status: "Review",
                     evidence: "https://docs.google.com/document/d/1BakeryProposalDraftXP2026/edit",
                     feedback: "",
-                    activity: [{ date: "2026-06-01", note: "Task assigned to Alex" }]
-                },
-                {
-                    id: "TSK-004",
-                    title: "Prototyping Tactile Pins on 3D Printer",
-                    track: "OpenBraille",
-                    desc: "Run 3 batch iterations of Braille solenoid actuation pin geometries on the Bambu labs 3D printer. Minimize spacing, check physical fit inside actuator frame.",
-                    assignee: "Marcus Johnson",
-                    due: "2026-06-05",
-                    status: "In Progress",
-                    evidence: "",
-                    feedback: "",
-                    activity: []
+                    activity: [{ date: "2026-06-01", note: "Task assigned." }]
                 }
             ];
 
-            const tasksCollection = collection(db, 'artifacts', appId, 'public', 'data', 'tasks');
             for (const task of seedTasks) {
-                await addDoc(tasksCollection, task);
+                await addTask(task);
             }
         };
 
@@ -1137,7 +1405,6 @@
                 const div = document.createElement('div');
                 div.className = "flex items-center space-x-2.5 p-1.5 rounded-lg hover:bg-slate-100 transition-all text-left";
                 
-                // Track colors for badge dot
                 let colorClass = "bg-slate-400";
                 if (profile.track === 'STEM Camps') colorClass = "bg-emerald-500";
                 else if (profile.track === 'Client Solutions') colorClass = "bg-blue-500";
@@ -1166,7 +1433,6 @@
             const dropdown = document.getElementById('task-modal-assignee');
             dropdown.innerHTML = "";
             
-            // Add current intern profile first
             if (currentUserProfile) {
                 const meOpt = document.createElement('option');
                 meOpt.value = currentUserProfile.name;
@@ -1183,14 +1449,12 @@
             });
         };
 
-        // GITHUB TASK KANBAN RENDER ENGINE (DYNAMIC READ FROM FIRESTORE CACHE)
         const renderAllTasks = () => {
             const backlogCol = document.getElementById('col-backlog');
             const inprogressCol = document.getElementById('col-inprogress');
             const reviewCol = document.getElementById('col-review');
             const completeCol = document.getElementById('col-complete');
 
-            // Clear containers
             backlogCol.innerHTML = '';
             inprogressCol.innerHTML = '';
             reviewCol.innerHTML = '';
@@ -1209,17 +1473,14 @@
                 const taskCard = document.createElement('div');
                 taskCard.className = "bg-white p-4 rounded-xl border border-slate-200 shadow-sm hover:shadow-md hover:border-indigo-200 transition-all cursor-pointer space-y-3 relative overflow-hidden group";
                 
-                // Event listener on card
                 taskCard.addEventListener('click', () => {
                     openTaskDetailsModal(task.id);
                 });
 
-                // Accent Line
                 const accentLine = document.createElement('div');
                 accentLine.className = `absolute left-0 top-0 bottom-0 w-1 ${colorConfig.marker}`;
                 taskCard.appendChild(accentLine);
 
-                // Title & Track info
                 const header = document.createElement('div');
                 header.className = "flex items-start justify-between gap-2";
                 
@@ -1235,13 +1496,11 @@
                 header.appendChild(trackBadge);
                 taskCard.appendChild(header);
 
-                // Body description snippet
                 const bodyDesc = document.createElement('p');
                 bodyDesc.className = "text-[11px] text-slate-400 line-clamp-3 leading-relaxed";
                 bodyDesc.innerText = task.desc;
                 taskCard.appendChild(bodyDesc);
 
-                // Delivery Evidence Indicator
                 if (task.evidence) {
                     const evidenceIndicator = document.createElement('div');
                     evidenceIndicator.className = "flex items-center space-x-1 text-[10px] bg-indigo-50 border border-indigo-100/50 text-indigo-700 py-1 px-2 rounded-lg font-medium";
@@ -1249,7 +1508,6 @@
                     taskCard.appendChild(evidenceIndicator);
                 }
 
-                // Feedback Banner if manager leaves note
                 if (task.feedback) {
                     const feedbackBanner = document.createElement('div');
                     feedbackBanner.className = "bg-emerald-50 text-emerald-800 border border-emerald-100 py-1 px-2 rounded-lg text-[9px] font-bold line-clamp-1 flex items-center space-x-1";
@@ -1257,7 +1515,6 @@
                     taskCard.appendChild(feedbackBanner);
                 }
 
-                // Footer metadata (Assignee & Due date)
                 const footer = document.createElement('div');
                 footer.className = "flex items-center justify-between border-t border-slate-100 pt-2 text-[10px] text-slate-500 font-medium";
                 
@@ -1279,7 +1536,6 @@
                 footer.appendChild(dateDiv);
                 taskCard.appendChild(footer);
 
-                // Add to proper status column
                 if (task.status === 'Backlog' || task.status === 'Ready') {
                     backlogCol.appendChild(taskCard);
                 } else if (task.status === 'In Progress') {
@@ -1291,7 +1547,6 @@
                 }
             });
 
-            // Update column header counts
             document.getElementById('count-backlog').innerText = cachedTasks.filter(t => t.status === 'Backlog' || t.status === 'Ready').length;
             document.getElementById('count-inprogress').innerText = cachedTasks.filter(t => t.status === 'In Progress').length;
             document.getElementById('count-review').innerText = cachedTasks.filter(t => t.status === 'Review').length;
@@ -1300,7 +1555,6 @@
             lucide.createIcons();
         };
 
-        // RENDERING WORK SUBMISSION LOGS
         const renderLogsStream = () => {
             const listContainer = document.getElementById('logs-list-container');
             listContainer.innerHTML = "";
@@ -1437,13 +1691,11 @@
                         </div>
                     </div>
                 `;
-                // Add event listener directly to prevent scope loss
                 document.getElementById(`btn-submit-feedback-${log.dbId}`).addEventListener('click', async () => {
                     const feedbackVal = document.getElementById(`feedback-input-${log.dbId}`).value.trim();
                     if (!feedbackVal) return;
                     
-                    const logDocRef = doc(db, 'artifacts', appId, 'public', 'data', 'logs', log.dbId);
-                    await updateDoc(logDocRef, { feedback: feedbackVal });
+                    await updateLog(log.dbId, { feedback: feedbackVal });
                     showToast("Feedback submitted to feed!");
                 });
             } else {
@@ -1451,7 +1703,6 @@
             }
         };
 
-        // TRAINING RESOURCES RENDERER
         const renderResources = () => {
             const gridContainer = document.getElementById('resources-grid-container');
             gridContainer.innerHTML = "";
@@ -1489,7 +1740,6 @@
                 gridContainer.appendChild(card);
             });
 
-            // Re-bind download simulators
             document.querySelectorAll('.download-sim-link').forEach(link => {
                 link.addEventListener('click', (e) => {
                     const title = e.currentTarget.getAttribute('data-title');
@@ -1500,23 +1750,18 @@
             lucide.createIcons();
         };
 
-        // STAT CALCULATOR 
         const recalculateSummaryStats = () => {
-            // Intern Count
             document.getElementById('stat-interns').innerText = `${cachedProfiles.length} Interns`;
 
-            // Hours Calculated
             let totalHours = 0;
             cachedLogs.forEach(log => {
                 totalHours += parseFloat(log.hours || 0);
             });
             document.getElementById('stat-hours').innerText = totalHours + " hrs";
 
-            // Task completion count
             let completedCount = cachedTasks.filter(t => t.status === 'Complete').length;
             document.getElementById('stat-tasks').innerText = `${completedCount} / ${cachedTasks.length}`;
 
-            // Pending Feedback
             let pendingFeedback = cachedTasks.filter(t => t.status === 'Review' && !t.feedback).length;
             document.getElementById('stat-feedback').innerText = pendingFeedback + " Items";
         };
@@ -1536,7 +1781,6 @@
             document.getElementById('detail-due').innerText = task.due;
             document.getElementById('detail-evidence-link').value = task.evidence || "";
 
-            // Style track badge
             const trackBadge = document.getElementById('detail-track-badge');
             trackBadge.innerText = task.track.toUpperCase();
             if (task.track === 'STEM Camps') {
@@ -1549,7 +1793,6 @@
                 trackBadge.className = "text-[10px] font-extrabold px-2.5 py-0.5 rounded bg-purple-50 text-purple-800 border border-purple-200";
             }
 
-            // Manager vs Intern Action Visibility
             const managerPanel = document.getElementById('detail-feedback-input-area');
             const internEvidencePanel = document.getElementById('detail-evidence-area');
             if (currentUserRole === 'manager') {
@@ -1561,9 +1804,7 @@
                 internEvidencePanel.classList.remove('hidden');
             }
 
-            // Build activity/comment logs
             buildTaskActivityList(task);
-
             document.getElementById('task-details-modal').classList.remove('hidden');
             lucide.createIcons();
         };
@@ -1601,7 +1842,6 @@
             });
         };
 
-        // Submit deliverables link
         const submitTaskEvidence = async () => {
             if (!activeTaskIdForModal) return;
             const linkInput = document.getElementById('detail-evidence-link').value.trim();
@@ -1618,8 +1858,7 @@
                     note: `${currentUserProfile.name} submitted evidence link: ${linkInput}`
                 });
 
-                const taskDocRef = doc(db, 'artifacts', appId, 'public', 'data', 'tasks', task.dbId);
-                await updateDoc(taskDocRef, {
+                await updateTask(task.dbId, {
                     evidence: linkInput,
                     status: "Review",
                     activity: updatedActivity
@@ -1630,7 +1869,6 @@
             }
         };
 
-        // Supervisor quick status changer
         const changeTaskStatusFromDetail = async (newStatus) => {
             if (!activeTaskIdForModal) return;
             const task = cachedTasks.find(t => t.id === activeTaskIdForModal);
@@ -1656,9 +1894,7 @@
 
             updates.activity = updatedActivity;
 
-            const taskDocRef = doc(db, 'artifacts', appId, 'public', 'data', 'tasks', task.dbId);
-            await updateDoc(taskDocRef, updates);
-
+            await updateTask(task.dbId, updates);
             toggleTaskDetailsModal(false);
             showToast(`Task moved to ${newStatus}`);
         };
@@ -1668,11 +1904,9 @@
         // ----------------------------------------------------
         const setupInteractiveEventListeners = () => {
             
-            // Log Tab switching
             document.getElementById('btn-form-daily').addEventListener('click', () => setLogFormType('daily'));
             document.getElementById('btn-form-weekly').addEventListener('click', () => setLogFormType('weekly'));
 
-            // Submissions Form handles
             document.getElementById('form-daily').addEventListener('submit', async (e) => {
                 e.preventDefault();
                 const track = document.getElementById('daily-track').value;
@@ -1696,10 +1930,8 @@
                     feedback: ""
                 };
 
-                const logsCollection = collection(db, 'artifacts', appId, 'public', 'data', 'logs');
-                await addDoc(logsCollection, newLog);
+                await addLog(newLog);
 
-                // reset
                 document.getElementById('daily-completed').value = "";
                 document.getElementById('daily-challenges').value = "";
                 document.getElementById('daily-link').value = "";
@@ -1732,10 +1964,8 @@
                     feedback: ""
                 };
 
-                const logsCollection = collection(db, 'artifacts', appId, 'public', 'data', 'logs');
-                await addDoc(logsCollection, newLog);
+                await addLog(newLog);
 
-                // reset
                 document.getElementById('weekly-wins').value = "";
                 document.getElementById('weekly-challenge').value = "";
                 document.getElementById('weekly-learning').value = "";
@@ -1745,13 +1975,11 @@
                 showToast("Success! Weekly reflection submitted to managers.");
             });
 
-            // Main Dashboard Menu Nav Buttons
             document.getElementById('nav-overview').addEventListener('click', () => setActiveTab('overview'));
             document.getElementById('nav-tasks').addEventListener('click', () => setActiveTab('tasks'));
             document.getElementById('nav-logs').addEventListener('click', () => setActiveTab('logs'));
             document.getElementById('nav-resources').addEventListener('click', () => setActiveTab('resources'));
 
-            // Quick actions on overview
             document.getElementById('btn-quick-log').addEventListener('click', () => setActiveTab('logs'));
             document.getElementById('btn-quick-tasks').addEventListener('click', () => setActiveTab('tasks'));
 
@@ -1760,11 +1988,9 @@
             document.getElementById('btn-track-openbraille').addEventListener('click', () => setActiveTab('tasks'));
             document.getElementById('btn-track-org').addEventListener('click', () => setActiveTab('tasks'));
 
-            // View Mode switcher toggles
             document.getElementById('btn-view-intern').addEventListener('click', () => switchUserRole('intern'));
             document.getElementById('btn-view-manager').addEventListener('click', () => switchUserRole('manager'));
 
-            // Create custom task modal triggers
             document.getElementById('btn-trigger-add-task').addEventListener('click', () => toggleAddTaskModal(true));
             document.getElementById('btn-close-task-modal').addEventListener('click', () => toggleAddTaskModal(false));
             document.getElementById('btn-cancel-task').addEventListener('click', () => toggleAddTaskModal(false));
@@ -1792,8 +2018,7 @@
                     activity: [{ date: "2026-06-02", note: `Created custom task assigned to ${assignee}` }]
                 };
 
-                const tasksCollection = collection(db, 'artifacts', appId, 'public', 'data', 'tasks');
-                await addDoc(tasksCollection, newTask);
+                await addTask(newTask);
 
                 document.getElementById('task-modal-title').value = "";
                 document.getElementById('task-modal-desc').value = "";
@@ -1801,22 +2026,18 @@
                 showToast(`Task ${randomId} successfully published!`);
             });
 
-            // Evidence submission details triggering
             document.getElementById('btn-submit-evidence').addEventListener('click', submitTaskEvidence);
             document.getElementById('btn-close-task-detail').addEventListener('click', () => toggleTaskDetailsModal(false));
 
-            // Status changer binding
             document.getElementById('btn-status-backlog').addEventListener('click', () => changeTaskStatusFromDetail('Backlog'));
             document.getElementById('btn-status-inprogress').addEventListener('click', () => changeTaskStatusFromDetail('In Progress'));
             document.getElementById('btn-status-review').addEventListener('click', () => changeTaskStatusFromDetail('Review'));
             document.getElementById('btn-status-complete').addEventListener('click', () => changeTaskStatusFromDetail('Complete'));
 
-            // Stream log filtering
             document.getElementById('log-filter-all').addEventListener('click', () => filterLogs('all'));
             document.getElementById('log-filter-daily').addEventListener('click', () => filterLogs('daily'));
             document.getElementById('log-filter-weekly').addEventListener('click', () => filterLogs('weekly'));
 
-            // Resource tags filtering
             document.querySelectorAll('#resources-filter-group button').forEach(btn => {
                 btn.addEventListener('click', (e) => {
                     const filter = e.currentTarget.getAttribute('data-filter');
@@ -1825,7 +2046,6 @@
             });
         };
 
-        // SWITCH USER ROLE (INTERN OR SUPERVISOR/MANAGER)
         const switchUserRole = (role) => {
             currentUserRole = role;
             const btnIntern = document.getElementById('btn-view-intern');
@@ -1859,12 +2079,10 @@
                 showToast("Switched to Intern View.");
             }
 
-            // Sync and rebuild the active views
             renderAllTasks();
             renderLogsStream();
         };
 
-        // SIDEBAR TAB MENU HANDLING
         const setActiveTab = (tabName) => {
             document.getElementById('sec-overview').classList.add('hidden');
             document.getElementById('sec-tasks').classList.add('hidden');
@@ -1881,7 +2099,6 @@
             document.getElementById(`nav-${tabName}`).className = "w-full flex items-center space-x-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-150 bg-indigo-50 text-indigo-600";
         };
 
-        // SWAP BETWEEN LOG AND WEEKLY FORM
         const setLogFormType = (type) => {
             selectedFormType = type;
             const btnDaily = document.getElementById('btn-form-daily');
@@ -1902,7 +2119,6 @@
             }
         };
 
-        // FILTER STAT STREAMS
         const filterLogs = (filterType) => {
             selectedLogFilter = filterType;
             
@@ -1946,7 +2162,6 @@
             }
         };
 
-        // SYSTEM NOTIFICATION TOASTS
         const showToast = (message) => {
             const container = document.getElementById('toast-container');
             const toast = document.createElement('div');
