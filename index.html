@@ -1,0 +1,1697 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>XPerience Summer Internship Hub</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+        }
+        .scrollbar-thin::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        .scrollbar-thin::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        .scrollbar-thin::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 3px;
+        }
+        .scrollbar-thin::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 antialiased min-h-screen flex flex-col">
+
+    <!-- TOP NAVIGATION BAR -->
+    <header class="bg-white border-b border-slate-200 sticky top-0 z-40">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16 items-center">
+                <!-- Logo & Brand -->
+                <div class="flex items-center space-x-3">
+                    <div class="w-10 h-10 rounded-xl bg-indigo-600 flex items-center justify-center text-white shadow-md shadow-indigo-100">
+                        <span class="font-extrabold text-xl tracking-tighter">XP</span>
+                    </div>
+                    <div>
+                        <h1 class="font-bold text-lg leading-tight text-slate-900">XPerience</h1>
+                        <p class="text-xs text-slate-500 font-medium">Summer Internship Portal</p>
+                    </div>
+                </div>
+
+                <!-- Live Track Indicator -->
+                <div class="hidden md:flex items-center space-x-1.5 bg-indigo-50 text-indigo-700 px-3 py-1.5 rounded-full text-xs font-semibold">
+                    <span class="relative flex h-2 w-2">
+                        <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-indigo-400 opacity-75"></span>
+                        <span class="relative inline-flex rounded-full h-2 w-2 bg-indigo-500"></span>
+                    </span>
+                    <span>Summer 2026 Cohort Active</span>
+                </div>
+
+                <!-- User Profile & Mode Switch -->
+                <div class="flex items-center space-x-3">
+                    <div class="flex bg-slate-100 p-1 rounded-lg border border-slate-200 text-xs font-medium">
+                        <button id="btn-view-intern" onclick="switchUserRole('intern')" class="px-3 py-1.5 rounded-md transition-all duration-150 bg-white text-indigo-600 shadow-sm font-semibold">
+                            Intern View
+                        </button>
+                        <button id="btn-view-manager" onclick="switchUserRole('manager')" class="px-3 py-1.5 rounded-md transition-all duration-150 text-slate-600 hover:text-slate-900">
+                            Manager View
+                        </button>
+                    </div>
+                    <div class="h-8 w-px bg-slate-200"></div>
+                    <div class="flex items-center space-x-2">
+                        <div class="w-9 h-9 rounded-full bg-indigo-100 text-indigo-700 flex items-center justify-center font-bold text-sm border border-indigo-200" id="avatar-user">
+                            AI
+                        </div>
+                        <div class="hidden lg:block text-left">
+                            <p class="text-xs font-semibold text-slate-900" id="profile-name">Alex Rivera</p>
+                            <p class="text-[10px] text-slate-400 font-medium" id="profile-role">Product/CS Intern</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- MAIN CONTEXT WRAPPER -->
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex-1 w-full flex flex-col lg:flex-row gap-8">
+        
+        <!-- SIDEBAR NAVIGATION -->
+        <aside class="w-full lg:w-64 flex-shrink-0">
+            <nav class="space-y-1 sticky top-24">
+                <p class="text-[11px] font-bold text-slate-400 uppercase tracking-wider px-3 mb-2">Main Dashboard</p>
+                
+                <button onclick="setActiveTab('overview')" id="nav-overview" class="w-full flex items-center space-x-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-150 bg-indigo-50 text-indigo-600">
+                    <i data-lucide="layout-dashboard" class="w-5 h-5"></i>
+                    <span>Overview & Track Info</span>
+                </button>
+
+                <button onclick="setActiveTab('tasks')" id="nav-tasks" class="w-full flex items-center space-x-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-150 text-slate-600 hover:bg-slate-100 hover:text-slate-900">
+                    <i data-lucide="kanban-square" class="w-5 h-5"></i>
+                    <span>Task Board (GitHub-Style)</span>
+                </button>
+
+                <button onclick="setActiveTab('logs')" id="nav-logs" class="w-full flex items-center space-x-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-150 text-slate-600 hover:bg-slate-100 hover:text-slate-900">
+                    <i data-lucide="clipboard-list" class="w-5 h-5"></i>
+                    <span>Daily Logs & Reflections</span>
+                </button>
+
+                <button onclick="setActiveTab('resources')" id="nav-resources" class="w-full flex items-center space-x-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-150 text-slate-600 hover:bg-slate-100 hover:text-slate-900">
+                    <i data-lucide="book-open" class="w-5 h-5"></i>
+                    <span>Resources & Training</span>
+                </button>
+
+                <div class="pt-6 border-t border-slate-200 mt-6"></div>
+                <p class="text-[11px] font-bold text-slate-400 uppercase tracking-wider px-3 mb-2">Active Intern Tracks</p>
+                
+                <div class="space-y-1.5 px-3">
+                    <div class="flex items-center space-x-2 text-xs font-semibold text-slate-600">
+                        <span class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span>
+                        <span>STEM Camps</span>
+                    </div>
+                    <div class="flex items-center space-x-2 text-xs font-semibold text-slate-600">
+                        <span class="w-2.5 h-2.5 rounded-full bg-blue-500"></span>
+                        <span>Business Client Solutions</span>
+                    </div>
+                    <div class="flex items-center space-x-2 text-xs font-semibold text-slate-600">
+                        <span class="w-2.5 h-2.5 rounded-full bg-amber-500"></span>
+                        <span>OpenBraille Project</span>
+                    </div>
+                    <div class="flex items-center space-x-2 text-xs font-semibold text-slate-600">
+                        <span class="w-2.5 h-2.5 rounded-full bg-purple-500"></span>
+                        <span>Org Growth & Outreach</span>
+                    </div>
+                </div>
+
+                <!-- Quick Help / Quote -->
+                <div class="mt-8 p-4 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-2xl text-white shadow-md relative overflow-hidden">
+                    <div class="absolute -right-6 -bottom-6 w-20 h-20 bg-white/10 rounded-full blur-xl"></div>
+                    <i data-lucide="sparkles" class="w-5 h-5 mb-2 opacity-90"></i>
+                    <p class="text-xs font-bold uppercase tracking-widest text-indigo-100">XPerience Mission</p>
+                    <p class="text-[11px] mt-1 leading-relaxed text-indigo-50 font-medium">Empowering local communities and developing accessible technology to bridge educational divides.</p>
+                </div>
+            </nav>
+        </aside>
+
+        <!-- MAIN DASHBOARD PANEL -->
+        <main class="flex-1 min-w-0" id="main-content-area">
+            
+            <!-- SECTION 1: OVERVIEW & TRACK INFO -->
+            <section id="sec-overview" class="space-y-8">
+                <!-- Welcome Header -->
+                <div class="bg-white rounded-2xl p-6 sm:p-8 border border-slate-200 shadow-sm relative overflow-hidden flex flex-col md:flex-row md:items-center justify-between gap-6">
+                    <div class="absolute top-0 right-0 w-48 h-48 bg-indigo-50 rounded-full -mr-16 -mt-16 -z-10 blur-xl"></div>
+                    <div class="space-y-2 max-w-xl">
+                        <span class="text-xs font-bold uppercase text-indigo-600 tracking-wider bg-indigo-50 px-2.5 py-1 rounded-full">Summer Internship 2026</span>
+                        <h2 class="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">Co-Design, Consulting & Technical Development Hub</h2>
+                        <p class="text-slate-500 text-sm leading-relaxed">Welcome to the central command for XPerience Interns. Tackle real-world business challenges, advance open-source assistive technology, and inspire the next generation of engineers.</p>
+                    </div>
+                    <div class="flex flex-col sm:flex-row gap-3 min-w-fit">
+                        <button onclick="setActiveTab('logs')" class="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold transition-all duration-150 flex items-center justify-center space-x-2 shadow-sm">
+                            <i data-lucide="plus-circle" class="w-4 h-4"></i>
+                            <span>Submit Daily Log</span>
+                        </button>
+                        <button onclick="setActiveTab('tasks')" class="px-5 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold transition-all duration-150 flex items-center justify-center space-x-2">
+                            <i data-lucide="kanban-square" class="w-4 h-4"></i>
+                            <span>View Active Tasks</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Quick Stats / Core Overview Dashboard -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center space-x-4">
+                        <div class="p-3 bg-emerald-50 text-emerald-600 rounded-xl">
+                            <i data-lucide="users" class="w-6 h-6"></i>
+                        </div>
+                        <div>
+                            <p class="text-xs text-slate-400 font-semibold">Total Intern Cohort</p>
+                            <p class="text-2xl font-bold text-slate-800" id="stat-interns">8 Interns</p>
+                        </div>
+                    </div>
+                    <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center space-x-4">
+                        <div class="p-3 bg-blue-50 text-blue-600 rounded-xl">
+                            <i data-lucide="clock" class="w-6 h-6"></i>
+                        </div>
+                        <div>
+                            <p class="text-xs text-slate-400 font-semibold">Total Hours Logged</p>
+                            <p class="text-2xl font-bold text-slate-800" id="stat-hours">142 hrs</p>
+                        </div>
+                    </div>
+                    <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center space-x-4">
+                        <div class="p-3 bg-amber-50 text-amber-600 rounded-xl">
+                            <i data-lucide="check-square" class="w-6 h-6"></i>
+                        </div>
+                        <div>
+                            <p class="text-xs text-slate-400 font-semibold">Tasks Completed</p>
+                            <p class="text-2xl font-bold text-slate-800" id="stat-tasks">21 / 34</p>
+                        </div>
+                    </div>
+                    <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center space-x-4">
+                        <div class="p-3 bg-purple-50 text-purple-600 rounded-xl">
+                            <i data-lucide="message-square" class="w-6 h-6"></i>
+                        </div>
+                        <div>
+                            <p class="text-xs text-slate-400 font-semibold">Pending Feedback</p>
+                            <p class="text-2xl font-bold text-slate-800" id="stat-feedback">3 Items</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- FOUR INTERNSHIP TRACKS CARD GRID -->
+                <div>
+                    <h3 class="text-lg font-bold text-slate-900 mb-5 flex items-center space-x-2">
+                        <i data-lucide="compass" class="w-5 h-5 text-indigo-600"></i>
+                        <span>Explore the 4 Summer Internship Tracks</span>
+                    </h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <!-- Track 1: STEM Camps -->
+                        <div class="bg-white rounded-2xl border border-slate-200 p-6 flex flex-col justify-between hover:shadow-md transition-all duration-200">
+                            <div class="space-y-4">
+                                <div class="flex justify-between items-start">
+                                    <span class="p-2.5 bg-emerald-50 text-emerald-600 rounded-xl inline-block">
+                                        <i data-lucide="graduation-cap" class="w-6 h-6"></i>
+                                    </span>
+                                    <span class="text-[10px] font-bold bg-emerald-100 text-emerald-800 px-2 py-1 rounded-md">STEM CAMPS</span>
+                                </div>
+                                <div>
+                                    <h4 class="font-bold text-base text-slate-900">Curriculum Development & Mentorship</h4>
+                                    <p class="text-slate-500 text-xs mt-1 leading-relaxed">Design, build, and prototype learning kits for three distinct youth STEM camps, including curriculum for upcoming future camps.</p>
+                                </div>
+                                <div class="bg-slate-50 p-3 rounded-xl space-y-2">
+                                    <p class="text-[11px] font-bold text-slate-600">Key Focus Areas:</p>
+                                    <ul class="text-[11px] text-slate-500 space-y-1 list-disc pl-4">
+                                        <li>Prototyping physical electronics or science demo kits</li>
+                                        <li>Drafting lesson plans & instructor slide-decks</li>
+                                        <li>Camp logistics & leading interactive student cohorts</li>
+                                    </ul>
+                                </div>
+                            </div>
+                            <button onclick="setActiveTab('tasks')" class="w-full mt-5 py-2 text-center bg-slate-100 hover:bg-indigo-50 hover:text-indigo-600 text-slate-600 font-bold text-xs rounded-xl transition-all duration-150">
+                                View STEM Camp Tasks
+                            </button>
+                        </div>
+
+                        <!-- Track 2: Client Solutions -->
+                        <div class="bg-white rounded-2xl border border-slate-200 p-6 flex flex-col justify-between hover:shadow-md transition-all duration-200">
+                            <div class="space-y-4">
+                                <div class="flex justify-between items-start">
+                                    <span class="p-2.5 bg-blue-50 text-blue-600 rounded-xl inline-block">
+                                        <i data-lucide="briefcase" class="w-6 h-6"></i>
+                                    </span>
+                                    <span class="text-[10px] font-bold bg-blue-100 text-blue-800 px-2 py-1 rounded-md">BUSINESS CONSULTING</span>
+                                </div>
+                                <div>
+                                    <h4 class="font-bold text-base text-slate-900">Client Consulting & Real-World Solutions</h4>
+                                    <p class="text-slate-500 text-xs mt-1 leading-relaxed">Collaborate directly with regional businesses to assess bottlenecks, draft engineering proposals, and build technology answers.</p>
+                                </div>
+                                <div class="bg-slate-50 p-3 rounded-xl space-y-2">
+                                    <p class="text-[11px] font-bold text-slate-600">Key Focus Areas:</p>
+                                    <ul class="text-[11px] text-slate-500 space-y-1 list-disc pl-4">
+                                        <li>Client discovery calls & drafting statements of work</li>
+                                        <li>Developing custom software dashboards or hardware prototypes</li>
+                                        <li>Final presentation decks & pitch delivery to executives</li>
+                                    </ul>
+                                </div>
+                            </div>
+                            <button onclick="setActiveTab('tasks')" class="w-full mt-5 py-2 text-center bg-slate-100 hover:bg-indigo-50 hover:text-indigo-600 text-slate-600 font-bold text-xs rounded-xl transition-all duration-150">
+                                View Business Tasks
+                            </button>
+                        </div>
+
+                        <!-- Track 3: OpenBraille -->
+                        <div class="bg-white rounded-2xl border border-slate-200 p-6 flex flex-col justify-between hover:shadow-md transition-all duration-200">
+                            <div class="space-y-4">
+                                <div class="flex justify-between items-start">
+                                    <span class="p-2.5 bg-amber-50 text-amber-600 rounded-xl inline-block">
+                                        <i data-lucide="binary" class="w-6 h-6"></i>
+                                    </span>
+                                    <span class="text-[10px] font-bold bg-amber-100 text-amber-800 px-2 py-1 rounded-md">OPENBRAILLE</span>
+                                </div>
+                                <div>
+                                    <h4 class="font-bold text-base text-slate-900">Assistive Technology R&D</h4>
+                                    <p class="text-slate-500 text-xs mt-1 leading-relaxed">Expand on XPerience's core project: OpenBraille. Designing open-source, affordable tactile displays, microcode, and tooling.</p>
+                                </div>
+                                <div class="bg-slate-50 p-3 rounded-xl space-y-2">
+                                    <p class="text-[11px] font-bold text-slate-600">Key Focus Areas:</p>
+                                    <ul class="text-[11px] text-slate-500 space-y-1 list-disc pl-4">
+                                        <li>Mechanical modeling in CAD & 3D printing optimization</li>
+                                        <li>Embedded software (C++/Arduino) for solenoid/actuator control</li>
+                                        <li>Interactive accessibility testing & user documentation</li>
+                                    </ul>
+                                </div>
+                            </div>
+                            <button onclick="setActiveTab('tasks')" class="w-full mt-5 py-2 text-center bg-slate-100 hover:bg-indigo-50 hover:text-indigo-600 text-slate-600 font-bold text-xs rounded-xl transition-all duration-150">
+                                View OpenBraille Tasks
+                            </button>
+                        </div>
+
+                        <!-- Track 4: Org Growth -->
+                        <div class="bg-white rounded-2xl border border-slate-200 p-6 flex flex-col justify-between hover:shadow-md transition-all duration-200">
+                            <div class="space-y-4">
+                                <div class="flex justify-between items-start">
+                                    <span class="p-2.5 bg-purple-50 text-purple-600 rounded-xl inline-block">
+                                        <i data-lucide="trending-up" class="w-6 h-6"></i>
+                                    </span>
+                                    <span class="text-[10px] font-bold bg-purple-100 text-purple-800 px-2 py-1 rounded-md">ORG GROWTH</span>
+                                </div>
+                                <div>
+                                    <h4 class="font-bold text-base text-slate-900">Organizational Growth & Outreach</h4>
+                                    <p class="text-slate-500 text-xs mt-1 leading-relaxed">Help scale XPerience. Design marketing content, pitch non-profit partners, run social campaigns, and help draft key grants.</p>
+                                </div>
+                                <div class="bg-slate-50 p-3 rounded-xl space-y-2">
+                                    <p class="text-[11px] font-bold text-slate-600">Key Focus Areas:</p>
+                                    <ul class="text-[11px] text-slate-500 space-y-1 list-disc pl-4">
+                                        <li>Creating compelling video recaps of STEM Camps</li>
+                                        <li>Researching local educational foundations & writing drafts</li>
+                                        <li>Formulating community engagement & recruitment events</li>
+                                    </ul>
+                                </div>
+                            </div>
+                            <button onclick="setActiveTab('tasks')" class="w-full mt-5 py-2 text-center bg-slate-100 hover:bg-indigo-50 hover:text-indigo-600 text-slate-600 font-bold text-xs rounded-xl transition-all duration-150">
+                                View Org Growth Tasks
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- HOW TO SUCCEED - INTERN EXPECTATIONS & TRACKING SYSTEM -->
+                <div class="bg-gradient-to-r from-slate-900 to-indigo-950 text-white rounded-2xl p-6 sm:p-8 shadow-lg border border-indigo-900/40">
+                    <div class="max-w-2xl space-y-4">
+                        <h3 class="text-xl font-bold tracking-tight text-white">How This Internship Works</h3>
+                        <p class="text-slate-300 text-xs sm:text-sm leading-relaxed">We use a blended tracking system designed to give you agency and make recording your outcomes seamless. You'll complete tasks, post daily updates, and submit a brief weekly reflection.</p>
+                        
+                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-4">
+                            <div class="border border-indigo-800/60 p-3 rounded-xl bg-white/5 space-y-1">
+                                <span class="text-indigo-400 font-extrabold text-xs flex items-center space-x-1">
+                                    <i data-lucide="circle-dot" class="w-3.5 h-3.5 mr-1"></i> 1. Grab Tasks
+                                </span>
+                                <p class="text-[11px] text-slate-300">Choose tasks from the GitHub-Style Task Board. Claim, work, and submit for review.</p>
+                            </div>
+                            <div class="border border-indigo-800/60 p-3 rounded-xl bg-white/5 space-y-1">
+                                <span class="text-indigo-400 font-extrabold text-xs flex items-center space-x-1">
+                                    <i data-lucide="clock" class="w-3.5 h-3.5 mr-1"></i> 2. Log Hours
+                                </span>
+                                <p class="text-[11px] text-slate-300">Submit 2-minute daily logs and weekly reflections in the Logs section.</p>
+                            </div>
+                            <div class="border border-indigo-800/60 p-3 rounded-xl bg-white/5 space-y-1">
+                                <span class="text-indigo-400 font-extrabold text-xs flex items-center space-x-1">
+                                    <i data-lucide="heart-handshake" class="w-3.5 h-3.5 mr-1"></i> 3. Get Feedback
+                                </span>
+                                <p class="text-[11px] text-slate-300">Review manager feedback on your logs and pull requests. Implement changes as we grow!</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- SECTION 2: TASK BOARD (GITHUB-STYLE) -->
+            <section id="sec-tasks" class="space-y-6 hidden">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                    <div>
+                        <h2 class="text-xl font-bold text-slate-900 flex items-center space-x-2">
+                            <i data-lucide="kanban-square" class="w-5 h-5 text-indigo-600"></i>
+                            <span>XP GitHub-Style Tasks Tracker</span>
+                        </h2>
+                        <p class="text-slate-500 text-xs">Self-assign tasks, update status, and attach evidence links.</p>
+                    </div>
+                    <!-- Add Task Trigger Button -->
+                    <button onclick="toggleAddTaskModal(true)" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs rounded-xl shadow-sm transition-all flex items-center space-x-1.5 self-start">
+                        <i data-lucide="plus" class="w-4 h-4"></i>
+                        <span>Add Custom Task</span>
+                    </button>
+                </div>
+
+                <!-- Column Container -->
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                    
+                    <!-- Backlog Column -->
+                    <div class="bg-slate-100 rounded-2xl p-4 flex flex-col min-h-[400px]">
+                        <div class="flex items-center justify-between pb-3 mb-3 border-b border-slate-200">
+                            <div class="flex items-center space-x-2">
+                                <span class="w-2.5 h-2.5 rounded-full bg-slate-400"></span>
+                                <span class="font-bold text-xs text-slate-700">Backlog</span>
+                            </div>
+                            <span class="text-[11px] bg-white text-slate-500 font-bold px-2 py-0.5 rounded-md" id="count-backlog">0</span>
+                        </div>
+                        <div id="col-backlog" class="space-y-3 flex-1 overflow-y-auto scrollbar-thin max-h-[550px]">
+                            <!-- Generated Dynamic Cards -->
+                        </div>
+                    </div>
+
+                    <!-- In Progress Column -->
+                    <div class="bg-blue-50/50 rounded-2xl p-4 flex flex-col min-h-[400px] border border-blue-100/30">
+                        <div class="flex items-center justify-between pb-3 mb-3 border-b border-blue-100">
+                            <div class="flex items-center space-x-2">
+                                <span class="w-2.5 h-2.5 rounded-full bg-blue-500 animate-pulse"></span>
+                                <span class="font-bold text-xs text-blue-900">In Progress</span>
+                            </div>
+                            <span class="text-[11px] bg-white text-blue-700 border border-blue-100 font-bold px-2 py-0.5 rounded-md" id="count-inprogress">0</span>
+                        </div>
+                        <div id="col-inprogress" class="space-y-3 flex-1 overflow-y-auto scrollbar-thin max-h-[550px]">
+                            <!-- Generated Dynamic Cards -->
+                        </div>
+                    </div>
+
+                    <!-- In Review Column -->
+                    <div class="bg-amber-50/50 rounded-2xl p-4 flex flex-col min-h-[400px] border border-amber-100/30">
+                        <div class="flex items-center justify-between pb-3 mb-3 border-b border-amber-100">
+                            <div class="flex items-center space-x-2">
+                                <span class="w-2.5 h-2.5 rounded-full bg-amber-500"></span>
+                                <span class="font-bold text-xs text-amber-900">In Review</span>
+                            </div>
+                            <span class="text-[11px] bg-white text-amber-700 border border-amber-100 font-bold px-2 py-0.5 rounded-md" id="count-review">0</span>
+                        </div>
+                        <div id="col-review" class="space-y-3 flex-1 overflow-y-auto scrollbar-thin max-h-[550px]">
+                            <!-- Generated Dynamic Cards -->
+                        </div>
+                    </div>
+
+                    <!-- Complete Column -->
+                    <div class="bg-emerald-50/40 rounded-2xl p-4 flex flex-col min-h-[400px] border border-emerald-100/30">
+                        <div class="flex items-center justify-between pb-3 mb-3 border-b border-emerald-100">
+                            <div class="flex items-center space-x-2">
+                                <span class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span>
+                                <span class="font-bold text-xs text-emerald-900">Completed</span>
+                            </div>
+                            <span class="text-[11px] bg-white text-emerald-700 border border-emerald-100 font-bold px-2 py-0.5 rounded-md" id="count-complete">0</span>
+                        </div>
+                        <div id="col-complete" class="space-y-3 flex-1 overflow-y-auto scrollbar-thin max-h-[550px]">
+                            <!-- Generated Dynamic Cards -->
+                        </div>
+                    </div>
+
+                </div>
+            </section>
+
+            <!-- SECTION 3: DAILY LOGS & REFLECTIONS -->
+            <section id="sec-logs" class="space-y-6 hidden">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                    <div>
+                        <h2 class="text-xl font-bold text-slate-900 flex items-center space-x-2">
+                            <i data-lucide="clipboard-list" class="w-5 h-5 text-indigo-600"></i>
+                            <span>Daily Logs & Reflection Engine</span>
+                        </h2>
+                        <p class="text-slate-500 text-xs">Intern submissions are logged here to generate recommendations and documentation.</p>
+                    </div>
+                </div>
+
+                <!-- Form & Active Submissions Split Layout -->
+                <div class="grid grid-cols-1 xl:grid-cols-5 gap-6">
+                    <!-- Form Column -->
+                    <div class="xl:col-span-2 space-y-6">
+                        
+                        <!-- Toggle Log Type tabs -->
+                        <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm space-y-4">
+                            <h3 class="font-bold text-xs uppercase tracking-wider text-slate-400">Log Submission</h3>
+                            
+                            <div class="flex bg-slate-100 p-1 rounded-lg">
+                                <button onclick="setLogFormType('daily')" id="btn-form-daily" class="flex-1 py-1.5 rounded-md text-xs font-bold transition-all duration-150 bg-white text-indigo-600 shadow-sm">
+                                    2-Min Daily Update
+                                </button>
+                                <button onclick="setLogFormType('weekly')" id="btn-form-weekly" class="flex-1 py-1.5 rounded-md text-xs font-bold transition-all duration-150 text-slate-500 hover:text-slate-800">
+                                    Weekly Reflection
+                                </button>
+                            </div>
+
+                            <!-- DAILY LOG FORM -->
+                            <form id="form-daily" onsubmit="handleDailyLogSubmit(event)" class="space-y-4">
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-600 mb-1">Select Track</label>
+                                    <select required id="daily-track" class="w-full text-xs p-2.5 rounded-lg border border-slate-200 focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+                                        <option value="STEM Camps">STEM Camp Development</option>
+                                        <option value="Client Solutions">Business Client Solutions</option>
+                                        <option value="OpenBraille">OpenBraille Project</option>
+                                        <option value="Org Growth">Organizational Growth & Outreach</option>
+                                    </select>
+                                </div>
+                                
+                                <div class="grid grid-cols-2 gap-3">
+                                    <div>
+                                        <label class="block text-xs font-bold text-slate-600 mb-1">Intern Name</label>
+                                        <input type="text" id="daily-name" value="Alex Rivera" required class="w-full text-xs p-2.5 rounded-lg border border-slate-200 focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+                                    </div>
+                                    <div>
+                                        <label class="block text-xs font-bold text-slate-600 mb-1">Hours Spent</label>
+                                        <input type="number" step="0.5" min="0.5" max="12" id="daily-hours" value="4" required class="w-full text-xs p-2.5 rounded-lg border border-slate-200 focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-600 mb-1">What did you complete today?</label>
+                                    <textarea required id="daily-completed" rows="3" placeholder="Completed circuit layouts, or drafted day 1 camp curriculum..." class="w-full text-xs p-2.5 rounded-lg border border-slate-200 focus:ring-2 focus:ring-indigo-500 focus:outline-none"></textarea>
+                                </div>
+
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-600 mb-1">Any challenges or blockers?</label>
+                                    <textarea id="daily-challenges" rows="2" placeholder="Explain what you are stuck on, or type 'None'..." class="w-full text-xs p-2.5 rounded-lg border border-slate-200 focus:ring-2 focus:ring-indigo-500 focus:outline-none"></textarea>
+                                </div>
+
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-600 mb-1">Evidence / Deliverable Link <span class="text-slate-400">(Figma, Github, Canva, Doc)</span></label>
+                                    <input type="url" id="daily-link" placeholder="https://github.com/..." class="w-full text-xs p-2.5 rounded-lg border border-slate-200 focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+                                </div>
+
+                                <button type="submit" class="w-full py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs rounded-xl shadow-sm transition-all flex items-center justify-center space-x-1">
+                                    <i data-lucide="check" class="w-4 h-4"></i>
+                                    <span>Submit Daily Update</span>
+                                </button>
+                            </form>
+
+                            <!-- WEEKLY REFLECTION FORM (Initially Hidden) -->
+                            <form id="form-weekly" onsubmit="handleWeeklyLogSubmit(event)" class="space-y-4 hidden">
+                                <div class="grid grid-cols-2 gap-3">
+                                    <div>
+                                        <label class="block text-xs font-bold text-slate-600 mb-1">Intern Name</label>
+                                        <input type="text" id="weekly-name" value="Alex Rivera" required class="w-full text-xs p-2.5 rounded-lg border border-slate-200 focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+                                    </div>
+                                    <div>
+                                        <label class="block text-xs font-bold text-slate-600 mb-1">Weekly Hours Total</label>
+                                        <input type="number" step="1" min="1" max="40" id="weekly-hours" value="20" required class="w-full text-xs p-2.5 rounded-lg border border-slate-200 focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-600 mb-1">Key Successes / Big Wins</label>
+                                    <textarea required id="weekly-wins" rows="2" placeholder="Finished the 3D print model of OpenBraille pins, finished draft slide deck for clients..." class="w-full text-xs p-2.5 rounded-lg border border-slate-200 focus:ring-2 focus:ring-indigo-500 focus:outline-none"></textarea>
+                                </div>
+
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-600 mb-1">Critical Challenge & Solution Attempted</label>
+                                    <textarea required id="weekly-challenge" rows="2" placeholder="The solenoid pins were jamming. I printed with slightly larger clearance..." class="w-full text-xs p-2.5 rounded-lg border border-slate-200 focus:ring-2 focus:ring-indigo-500 focus:outline-none"></textarea>
+                                </div>
+
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-600 mb-1">Core Learning & Insights This Week</label>
+                                    <textarea required id="weekly-learning" rows="2" placeholder="Learned how CAD tolerances change between PLA and ABS materials..." class="w-full text-xs p-2.5 rounded-lg border border-slate-200 focus:ring-2 focus:ring-indigo-500 focus:outline-none"></textarea>
+                                </div>
+
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-600 mb-1">Next Week's Specific Goals</label>
+                                    <textarea required id="weekly-goals" rows="2" placeholder="To complete wiring up the Arduino controllers and print housing v2..." class="w-full text-xs p-2.5 rounded-lg border border-slate-200 focus:ring-2 focus:ring-indigo-500 focus:outline-none"></textarea>
+                                </div>
+
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-600 mb-1">Questions for Mentors / Advisors</label>
+                                    <textarea id="weekly-mentor-questions" rows="1" placeholder="Can we schedule code review for the Braille translation logic?" class="w-full text-xs p-2.5 rounded-lg border border-slate-200 focus:ring-2 focus:ring-indigo-500 focus:outline-none"></textarea>
+                                </div>
+
+                                <button type="submit" class="w-full py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs rounded-xl shadow-sm transition-all flex items-center justify-center space-x-1">
+                                    <i data-lucide="check" class="w-4 h-4"></i>
+                                    <span>Submit Weekly Reflection</span>
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+
+                    <!-- Interactive Log History Column -->
+                    <div class="xl:col-span-3 space-y-6">
+                        <div class="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm">
+                            <div class="flex items-center justify-between pb-4 border-b border-slate-200 mb-4">
+                                <div>
+                                    <h3 class="font-bold text-sm text-slate-900">Submission Log Stream</h3>
+                                    <p class="text-[11px] text-slate-400">View live activity and review inputs from the interns.</p>
+                                </div>
+                                <div class="flex items-center space-x-1 text-[11px] bg-slate-100 p-1 rounded-lg">
+                                    <button onclick="filterLogs('all')" id="log-filter-all" class="px-2 py-1 font-semibold text-slate-700 bg-white rounded-md shadow-sm">All</button>
+                                    <button onclick="filterLogs('daily')" id="log-filter-daily" class="px-2 py-1 text-slate-500">Daily</button>
+                                    <button onclick="filterLogs('weekly')" id="log-filter-weekly" class="px-2 py-1 text-slate-500">Weekly</button>
+                                </div>
+                            </div>
+
+                            <div id="logs-list-container" class="space-y-4 max-h-[600px] overflow-y-auto scrollbar-thin">
+                                <!-- Logs will append dynamically -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- SECTION 4: RESOURCES & TRAINING -->
+            <section id="sec-resources" class="space-y-6 hidden">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                    <div>
+                        <h2 class="text-xl font-bold text-slate-900 flex items-center space-x-2">
+                            <i data-lucide="book-open" class="w-5 h-5 text-indigo-600"></i>
+                            <span>Training Repository & Class Materials</span>
+                        </h2>
+                        <p class="text-slate-500 text-xs">Access documentation, technical standards, curricula, and templates to move faster.</p>
+                    </div>
+                </div>
+
+                <!-- Resources Tabs / Tracks Filtering -->
+                <div class="flex flex-wrap gap-2 pb-2">
+                    <button onclick="filterResources('all')" class="res-tag-btn px-4 py-2 text-xs font-bold rounded-xl transition-all bg-indigo-600 text-white">All Materials</button>
+                    <button onclick="filterResources('stem')" class="res-tag-btn px-4 py-2 text-xs font-bold rounded-xl transition-all bg-white text-slate-600 border border-slate-200 hover:bg-slate-50">STEM Camps</button>
+                    <button onclick="filterResources('client')" class="res-tag-btn px-4 py-2 text-xs font-bold rounded-xl transition-all bg-white text-slate-600 border border-slate-200 hover:bg-slate-50">Business Consulting</button>
+                    <button onclick="filterResources('openbraille')" class="res-tag-btn px-4 py-2 text-xs font-bold rounded-xl transition-all bg-white text-slate-600 border border-slate-200 hover:bg-slate-50">OpenBraille Project</button>
+                    <button onclick="filterResources('org')" class="res-tag-btn px-4 py-2 text-xs font-bold rounded-xl transition-all bg-white text-slate-600 border border-slate-200 hover:bg-slate-50">Growth & Outreach</button>
+                </div>
+
+                <!-- Resources Grid -->
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" id="resources-grid-container">
+                    <!-- Dynamic Resources -->
+                </div>
+            </section>
+
+        </main>
+    </div>
+
+    <!-- ADD TASK MODAL (KANBAN CREATOR) -->
+    <div id="add-task-modal" class="fixed inset-0 bg-slate-900/50 flex items-center justify-center p-4 z-50 hidden">
+        <div class="bg-white w-full max-w-md rounded-2xl border border-slate-200 shadow-xl overflow-hidden flex flex-col">
+            <div class="p-5 border-b border-slate-200 flex items-center justify-between">
+                <h3 class="font-bold text-slate-900 text-sm">Create New Active Task</h3>
+                <button onclick="toggleAddTaskModal(false)" class="text-slate-400 hover:text-slate-600">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+            <form onsubmit="handleCustomTaskSubmit(event)" class="p-5 space-y-4">
+                <div>
+                    <label class="block text-xs font-bold text-slate-600 mb-1">Task Title</label>
+                    <input type="text" id="task-modal-title" required placeholder="e.g. Design Day 2 Curriculum outline" class="w-full text-xs p-2.5 rounded-lg border border-slate-200 focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-slate-600 mb-1">Task Track</label>
+                    <select id="task-modal-track" class="w-full text-xs p-2.5 rounded-lg border border-slate-200 focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+                        <option value="STEM Camps">STEM Camps</option>
+                        <option value="Client Solutions">Business Client Solutions</option>
+                        <option value="OpenBraille">OpenBraille Project</option>
+                        <option value="Org Growth">Org Growth & Outreach</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-slate-600 mb-1">Description / Goals</label>
+                    <textarea id="task-modal-desc" rows="3" required placeholder="Outline exactly what deliverables are required to close this task out..." class="w-full text-xs p-2.5 rounded-lg border border-slate-200 focus:ring-2 focus:ring-indigo-500 focus:outline-none"></textarea>
+                </div>
+
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-600 mb-1">Assignee</label>
+                        <input type="text" id="task-modal-assignee" value="Alex Rivera" required class="w-full text-xs p-2.5 rounded-lg border border-slate-200 focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-600 mb-1">Target Date</label>
+                        <input type="date" id="task-modal-due" value="2026-06-15" class="w-full text-xs p-2.5 rounded-lg border border-slate-200 focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+                    </div>
+                </div>
+
+                <div class="pt-2 flex justify-end space-x-2">
+                    <button type="button" onclick="toggleAddTaskModal(false)" class="px-4 py-2 border border-slate-200 rounded-lg text-xs font-bold text-slate-600 hover:bg-slate-50">Cancel</button>
+                    <button type="submit" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-xs font-bold shadow-sm">Add Task</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- TASK DETAILS / FEEDBACK SUBMIT MODAL -->
+    <div id="task-details-modal" class="fixed inset-0 bg-slate-900/50 flex items-center justify-center p-4 z-50 hidden">
+        <div class="bg-white w-full max-w-lg rounded-2xl border border-slate-200 shadow-xl overflow-hidden flex flex-col">
+            <div class="p-5 border-b border-slate-200 flex items-center justify-between bg-slate-50">
+                <div class="flex items-center space-x-2">
+                    <span id="detail-track-badge" class="text-[10px] font-bold px-2 py-0.5 rounded-md">TRACK</span>
+                    <span class="text-xs text-slate-400 font-semibold" id="detail-id">XP-01</span>
+                </div>
+                <button onclick="toggleTaskDetailsModal(false)" class="text-slate-400 hover:text-slate-600">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+            
+            <div class="p-6 space-y-4">
+                <div>
+                    <h3 class="text-lg font-extrabold text-slate-900 leading-snug" id="detail-title">Task Title</h3>
+                    <p class="text-slate-500 text-xs mt-1" id="detail-desc">Full details about this internship project task.</p>
+                </div>
+
+                <div class="grid grid-cols-2 gap-4 bg-slate-50 p-3.5 rounded-xl border border-slate-100">
+                    <div>
+                        <p class="text-[10px] font-bold uppercase text-slate-400">Assigned To</p>
+                        <p class="text-xs font-bold text-slate-800" id="detail-assignee">Alex Rivera</p>
+                    </div>
+                    <div>
+                        <p class="text-[10px] font-bold uppercase text-slate-400">Target Deadline</p>
+                        <p class="text-xs font-bold text-slate-800" id="detail-due">June 10, 2026</p>
+                    </div>
+                </div>
+
+                <!-- Evidence Link submission form (Interns) -->
+                <div id="detail-evidence-area" class="space-y-2">
+                    <p class="text-xs font-bold text-slate-800">Submit Evidence of Work</p>
+                    <p class="text-[11px] text-slate-400">Include your Google Doc draft, GitHub commit PR, Figma wireframe or video asset.</p>
+                    <div class="flex gap-2">
+                        <input type="url" id="detail-evidence-link" placeholder="https://docs.google.com/..." class="flex-1 text-xs p-2.5 rounded-lg border border-slate-200 focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+                        <button onclick="submitTaskEvidence()" class="px-4 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-xs font-bold">Submit</button>
+                    </div>
+                </div>
+
+                <!-- Manager Comment / Feedback input (Manager Only) -->
+                <div id="detail-feedback-input-area" class="space-y-2 pt-2 border-t border-slate-100 hidden">
+                    <p class="text-xs font-bold text-indigo-900 flex items-center space-x-1">
+                        <i data-lucide="shield-alert" class="w-4 h-4 text-indigo-500"></i>
+                        <span>Manager Action Panel</span>
+                    </p>
+                    <div class="space-y-3 bg-indigo-50/50 p-4 rounded-xl border border-indigo-100">
+                        <div>
+                            <label class="block text-[11px] font-bold text-indigo-900 mb-1">Review Feedback Note</label>
+                            <textarea id="detail-manager-feedback-note" rows="2" placeholder="Great job on curriculum drafting. Recommend adding more quiz questions to slide deck..." class="w-full text-xs p-2.5 rounded-lg border border-slate-200 focus:ring-2 focus:ring-indigo-500 focus:outline-none bg-white"></textarea>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span class="text-[10px] text-slate-500">Quick Change Status:</span>
+                            <div class="flex gap-1.5">
+                                <button onclick="changeTaskStatusFromDetail('Backlog')" class="px-2 py-1 bg-white text-slate-600 border border-slate-200 hover:border-slate-300 rounded text-[10px] font-bold">Backlog</button>
+                                <button onclick="changeTaskStatusFromDetail('In Progress')" class="px-2 py-1 bg-blue-100 text-blue-700 hover:bg-blue-200 rounded text-[10px] font-bold">In Progress</button>
+                                <button onclick="changeTaskStatusFromDetail('Review')" class="px-2 py-1 bg-amber-100 text-amber-700 hover:bg-amber-200 rounded text-[10px] font-bold">Review</button>
+                                <button onclick="changeTaskStatusFromDetail('Complete')" class="px-2 py-1 bg-emerald-600 text-white hover:bg-emerald-700 rounded text-[10px] font-bold">Complete</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Task Comments & Logs section -->
+                <div class="space-y-2 pt-2 border-t border-slate-100">
+                    <p class="text-xs font-bold text-slate-800">Task Activity & Feedback Logs</p>
+                    <div class="space-y-2 max-h-36 overflow-y-auto" id="detail-activity-feed">
+                        <!-- Dynamic Logs/comments -->
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- TOAST NOTIFICATION CONTAINER -->
+    <div id="toast-container" class="fixed bottom-5 right-5 space-y-2 z-50"></div>
+
+    <!-- FOOTER -->
+    <footer class="bg-white border-t border-slate-200 py-6 mt-12">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row justify-between items-center gap-4">
+            <div class="flex items-center space-x-2">
+                <span class="w-8 h-8 rounded-lg bg-indigo-600 text-white flex items-center justify-center font-extrabold text-sm">XP</span>
+                <span class="text-xs font-bold text-slate-600">&copy; 2026 XPerience Co-Design & R&D Hub. All rights reserved.</span>
+            </div>
+            <div class="flex space-x-6 text-xs font-bold text-slate-400">
+                <a href="#" class="hover:text-indigo-600">Privacy Policy</a>
+                <a href="#" class="hover:text-indigo-600">XPerience Mission</a>
+                <a href="#" class="hover:text-indigo-600">OpenBraille Source</a>
+            </div>
+        </div>
+    </footer>
+
+    <!-- INTERNSHIP STATE ENGINE -->
+    <script>
+        // CORE IN-MEMORY STATE 
+        let currentUserRole = "intern"; // 'intern' or 'manager'
+        let selectedFormType = "daily"; // 'daily' or 'weekly'
+        let selectedLogFilter = "all";  // 'all' | 'daily' | 'weekly'
+        let selectedResourceFilter = "all";
+        let activeTaskIdForModal = null;
+
+        // Default Seed Data - Interns
+        const interns = [
+            { id: "1", name: "Alex Rivera", role: "Embedded Systems/CS Intern", email: "alex@xperience.org" },
+            { id: "2", name: "Leila Chen", role: "Curriculum Design Specialist", email: "leila@xperience.org" },
+            { id: "3", name: "Marcus Johnson", role: "Mechanical Prototyping Lead", email: "marcus@xperience.org" },
+            { id: "4", name: "Sonia Patel", role: "Community & Grant Strategy", email: "sonia@xperience.org" }
+        ];
+
+        // Seed Data - Task Tracking Board
+        let tasks = [
+            // STEM Camps
+            {
+                id: "TSK-001",
+                title: "Refine Lesson Kit 1 (Sensors & Microcontrollers)",
+                track: "STEM Camps",
+                desc: "Check-out standard component inventory, assemble 15 breadboard prototyping packets for middle schoolers, and ensure resistors are pre-sorted.",
+                assignee: "Leila Chen",
+                due: "2026-06-12",
+                status: "In Progress",
+                evidence: "",
+                feedback: "",
+                activity: [{ date: "2026-06-02", note: "Task created and assigned to Leila Chen" }]
+            },
+            {
+                id: "TSK-002",
+                title: "Draft Curriculum Outline for Advanced Robotics Future Camp",
+                track: "STEM Camps",
+                desc: "Develop lesson timeline focusing on motor drivers, introductory state machines, and coding obstacle course logic.",
+                assignee: "Alex Rivera",
+                due: "2026-06-18",
+                status: "Backlog",
+                evidence: "",
+                feedback: "",
+                activity: []
+            },
+            // Business Consulting
+            {
+                id: "TSK-003",
+                title: "Regional Bakery Logistics & Software Assessment",
+                track: "Client Solutions",
+                desc: "Map workflow from initial order submission to delivery path, identify manual steps in the spreadsheets, and design proposed automated software database layout.",
+                assignee: "Alex Rivera",
+                due: "2026-06-08",
+                status: "Review",
+                evidence: "https://docs.google.com/document/d/1BakeryProposalDraftXP2026/edit",
+                feedback: "Excellent layout. Please simplify database ERD symbols so client can easily digest design during presentation.",
+                activity: [
+                    { date: "2026-06-01", note: "Task assigned to Alex Rivera" },
+                    { date: "2026-06-02", note: "Alex Rivera submitted evidence link: https://docs.google.com/document/d/1BakeryProposalDraftXP2026/edit" }
+                ]
+            },
+            // OpenBraille
+            {
+                id: "TSK-004",
+                title: "Prototyping Tactile Pins on 3D Printer",
+                track: "OpenBraille",
+                desc: "Run 3 batch iterations of Braille solenoid actuation pin geometries on the Bambu labs 3D printer. Minimize spacing, check physical fit inside actuator frame.",
+                assignee: "Marcus Johnson",
+                due: "2026-06-05",
+                status: "In Progress",
+                evidence: "",
+                feedback: "",
+                activity: [{ date: "2026-06-02", note: "Marcus updated progress: Pin tolerances look tight. Print v2 is underway." }]
+            },
+            {
+                id: "TSK-005",
+                title: "Microcode optimization for OpenBraille Translate library",
+                track: "OpenBraille",
+                desc: "Benchmark conversion buffer from standard Latin character text string to mechanical solenoid pin codes on Raspberry Pi Pico.",
+                assignee: "Alex Rivera",
+                due: "2026-06-14",
+                status: "Complete",
+                evidence: "https://github.com/xperience-project/openbraille-translate/pull/4",
+                feedback: "Verified benchmarks on physical test board! Solenoid refresh response went from 40ms down to 18ms. Outstanding micro-optimization.",
+                activity: [
+                    { date: "2026-05-30", note: "Task drafted" },
+                    { date: "2026-06-01", note: "Alex Rivera uploaded codebase PR link." },
+                    { date: "2026-06-02", note: "Manager verified work and closed task out to Complete." }
+                ]
+            },
+            // Org Growth & Outreach
+            {
+                id: "TSK-006",
+                title: "Draft Local Educational Foundation Grant Draft",
+                track: "Org Growth",
+                desc: "Write 3-page outreach draft proposing $10,000 grant for underserved STEM youth camps. Focus on metrics, safety protocols, and past outcomes.",
+                assignee: "Sonia Patel",
+                due: "2026-06-10",
+                status: "Backlog",
+                evidence: "",
+                feedback: "",
+                activity: []
+            }
+        ];
+
+        // Seed Data - Daily/Weekly Submission Logs
+        let logs = [
+            {
+                id: "LOG-001",
+                type: "daily",
+                intern: "Alex Rivera",
+                track: "Client Solutions",
+                hours: 4.5,
+                timestamp: "2026-06-02 11:30 AM",
+                data: {
+                    completed: "Drafted database structure for the Regional Bakery order flow app, completed draft proposal presentation deck.",
+                    challenges: "Struggling to figure out if we should use MySQL or a lighter JSON backend to minimize client cloud server expense.",
+                    link: "https://docs.google.com/document/d/1BakeryProposalDraftXP2026/edit"
+                },
+                feedback: "Use lightweight Postgres hosted on Supabase free-tier instead of heavy databases. Happy to help scope details tomorrow."
+            },
+            {
+                id: "LOG-002",
+                type: "daily",
+                intern: "Leila Chen",
+                track: "STEM Camps",
+                hours: 6.0,
+                timestamp: "2026-06-01 04:15 PM",
+                data: {
+                    completed: "Finalized instructional slides for day 1 of Sensors Camp. Laid out safety protocols for soldering.",
+                    challenges: "Sourcing cheap multimeters is taking longer. Budget constraints mean we can only buy 10.",
+                    link: ""
+                },
+                feedback: "Good work. I reached out to a regional hardware partner; we might secure 10 donor multimeters by Friday!"
+            },
+            {
+                id: "LOG-003",
+                type: "weekly",
+                intern: "Marcus Johnson",
+                track: "OpenBraille",
+                hours: 24,
+                timestamp: "2026-05-29 03:30 PM",
+                data: {
+                    wins: "Engineered and printed mechanical outer shell v3 for the 6-dot actuation module.",
+                    challenges: "Solenoid friction heating when actuated repeatedly over 3 minutes. Need structural heat dissipation.",
+                    learning: "Learned that thermal dynamics in custom plastic housings are highly critical when continuous voltage is applied to solenoids.",
+                    goals: "Source tiny heat sinks or design ventilation channels in the outer mounting case.",
+                    questions: "Do we have small 5V computer fans available in our laboratory stock?"
+                },
+                feedback: "Incredible engineering documentation, Marcus. Yes! Check drawer #4 under thermal kits. We have 25mm blower fans."
+            }
+        ];
+
+        // Seed Data - Resources
+        const resources = [
+            {
+                id: "RES-001",
+                title: "OpenBraille System Overview & Schematics",
+                track: "openbraille",
+                desc: "An analytical breakdown of OpenBraille mechanisms, CAD dimension criteria, micro-controller wiring configurations, and pin layout guides.",
+                author: "XPerience Advisory Board",
+                linkName: "Get CAD & Code Guidelines",
+                icon: "cpu"
+            },
+            {
+                id: "RES-002",
+                title: "Professional Client Discovery Playbook",
+                track: "client",
+                desc: "Step-by-step guidelines on conducting discovery workshops with partners, preparing consulting proposals, and organizing final presentations.",
+                author: "Business Ops Team",
+                linkName: "Consulting Kit PDF",
+                icon: "briefcase"
+            },
+            {
+                id: "RES-003",
+                title: "STEM Lesson Outline & Curriculum Guide",
+                track: "stem",
+                desc: "Approved standard format for creating lesson plans, activity rubrics, and interactive slide presentations for high-energy youth cohorts.",
+                author: "Educational Directors",
+                linkName: "Curriculum Template Doc",
+                icon: "graduation-cap"
+            },
+            {
+                id: "RES-004",
+                title: "XPerience Branding & Non-Profit Outreach Packet",
+                track: "org",
+                desc: "Official vector assets, logo colors, boilerplate impact metrics, and past educational reports to support grant writing and outreach outreach.",
+                author: "Marketing & Growth Hub",
+                linkName: "Brand Kit & Guidelines",
+                icon: "palette"
+            },
+            {
+                id: "RES-005",
+                title: "Bambu Lab 3D Printer Settings Profile",
+                track: "openbraille",
+                desc: "Importable slicer profile with optimized speeds, retract levels, and heat parameters specifically calibrated for fine-tolerance Braille actuator pins.",
+                author: "Marcus Johnson",
+                linkName: "Download .3mf Config File",
+                icon: "printer"
+            }
+        ];
+
+        // APP INITIALIZATION
+        window.onload = function() {
+            renderAllTasks();
+            renderLogsStream();
+            renderResources();
+            recalculateSummaryStats();
+            lucide.createIcons();
+        }
+
+        // ROLE SWITCH ENGINE
+        function switchUserRole(role) {
+            currentUserRole = role;
+            const btnIntern = document.getElementById('btn-view-intern');
+            const btnManager = document.getElementById('btn-view-manager');
+            const profileName = document.getElementById('profile-name');
+            const profileRole = document.getElementById('profile-role');
+            const avatarUser = document.getElementById('avatar-user');
+
+            if (role === 'manager') {
+                btnIntern.className = "px-3 py-1.5 rounded-md transition-all duration-150 text-slate-600 hover:text-slate-900";
+                btnManager.className = "px-3 py-1.5 rounded-md transition-all duration-150 bg-white text-indigo-600 shadow-sm font-semibold";
+                
+                profileName.innerText = "Director XPerience";
+                profileRole.innerText = "Cohort Mentor / Principal";
+                avatarUser.innerText = "XP";
+                avatarUser.className = "w-9 h-9 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center font-bold text-sm border border-emerald-200";
+                
+                showToast("Switched to Manager View. You can now leave review notes and manage task statuses.");
+            } else {
+                btnIntern.className = "px-3 py-1.5 rounded-md transition-all duration-150 bg-white text-indigo-600 shadow-sm font-semibold";
+                btnManager.className = "px-3 py-1.5 rounded-md transition-all duration-150 text-slate-600 hover:text-slate-900";
+                
+                profileName.innerText = "Alex Rivera";
+                profileRole.innerText = "Product/CS Intern";
+                avatarUser.innerText = "AI";
+                avatarUser.className = "w-9 h-9 rounded-full bg-indigo-100 text-indigo-700 flex items-center justify-center font-bold text-sm border border-indigo-200";
+                
+                showToast("Switched to Intern View. Work tasks, log updates, and submit weekly reflections.");
+            }
+
+            // Re-render UI segments which differ depending on view
+            renderAllTasks();
+            renderLogsStream();
+        }
+
+        // TAB SWITCH NAVIGATION
+        function setActiveTab(tabName) {
+            // Hide all sections
+            document.getElementById('sec-overview').classList.add('hidden');
+            document.getElementById('sec-tasks').classList.add('hidden');
+            document.getElementById('sec-logs').classList.add('hidden');
+            document.getElementById('sec-resources').classList.add('hidden');
+
+            // Reset navigation tab button styling
+            const navs = ['nav-overview', 'nav-tasks', 'nav-logs', 'nav-resources'];
+            navs.forEach(navId => {
+                const btn = document.getElementById(navId);
+                btn.className = "w-full flex items-center space-x-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-150 text-slate-600 hover:bg-slate-100 hover:text-slate-900";
+            });
+
+            // Activate chosen tab section
+            const activeSec = document.getElementById(`sec-${tabName}`);
+            activeSec.classList.remove('hidden');
+
+            // Set active color to navigation button
+            const activeBtn = document.getElementById(`nav-${tabName}`);
+            activeBtn.className = "w-full flex items-center space-x-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-150 bg-indigo-50 text-indigo-600";
+        }
+
+        // STAT CALCULATOR 
+        function recalculateSummaryStats() {
+            // Total hours
+            let totalHours = 0;
+            logs.forEach(log => {
+                totalHours += parseFloat(log.hours || 0);
+            });
+            document.getElementById('stat-hours').innerText = totalHours + " hrs";
+
+            // Task completion count
+            let completedCount = tasks.filter(t => t.status === 'Complete').length;
+            document.getElementById('stat-tasks').innerText = `${completedCount} / ${tasks.length}`;
+
+            // Pending Feedback
+            let pendingFeedback = tasks.filter(t => t.status === 'Review' && !t.feedback).length;
+            document.getElementById('stat-feedback').innerText = pendingFeedback + " Items";
+        }
+
+        // GITHUB TASK KANBAN RENDER ENGINE
+        function renderAllTasks() {
+            const backlogCol = document.getElementById('col-backlog');
+            const inprogressCol = document.getElementById('col-inprogress');
+            const reviewCol = document.getElementById('col-review');
+            const completeCol = document.getElementById('col-complete');
+
+            // Clear containers
+            backlogCol.innerHTML = '';
+            inprogressCol.innerHTML = '';
+            reviewCol.innerHTML = '';
+            completeCol.innerHTML = '';
+
+            // Map styles based on Track
+            const trackColors = {
+                "STEM Camps": { bg: "bg-emerald-50 text-emerald-800 border-emerald-200", marker: "bg-emerald-500" },
+                "Client Solutions": { bg: "bg-blue-50 text-blue-800 border-blue-200", marker: "bg-blue-500" },
+                "OpenBraille": { bg: "bg-amber-50 text-amber-800 border-amber-200", marker: "bg-amber-500" },
+                "Org Growth": { bg: "bg-purple-50 text-purple-800 border-purple-200", marker: "bg-purple-500" }
+            };
+
+            tasks.forEach(task => {
+                const colorConfig = trackColors[task.track] || { bg: "bg-slate-50 text-slate-800 border-slate-200", marker: "bg-slate-400" };
+                
+                const taskCard = document.createElement('div');
+                taskCard.className = "bg-white p-4 rounded-xl border border-slate-200 shadow-sm hover:shadow-md hover:border-indigo-200 transition-all cursor-pointer space-y-3 relative overflow-hidden group";
+                taskCard.setAttribute("onclick", `openTaskDetailsModal('${task.id}')`);
+
+                // Accent Line
+                const accentLine = document.createElement('div');
+                accentLine.className = `absolute left-0 top-0 bottom-0 w-1 ${colorConfig.marker}`;
+                taskCard.appendChild(accentLine);
+
+                // Title & Track info
+                const header = document.createElement('div');
+                header.className = "flex items-start justify-between gap-2";
+                
+                const titleText = document.createElement('h4');
+                titleText.className = "font-bold text-xs text-slate-800 group-hover:text-indigo-600 transition-all leading-snug line-clamp-2";
+                titleText.innerText = task.title;
+
+                const trackBadge = document.createElement('span');
+                trackBadge.className = `text-[8px] font-extrabold px-1.5 py-0.5 rounded uppercase tracking-wider ${colorConfig.bg} border shrink-0`;
+                trackBadge.innerText = task.track === 'Client Solutions' ? 'Consulting' : task.track;
+
+                header.appendChild(titleText);
+                header.appendChild(trackBadge);
+                taskCard.appendChild(header);
+
+                // Body description snippet
+                const bodyDesc = document.createElement('p');
+                bodyDesc.className = "text-[11px] text-slate-400 line-clamp-3 leading-relaxed";
+                bodyDesc.innerText = task.desc;
+                taskCard.appendChild(bodyDesc);
+
+                // Delivery Evidence Indicator if existing
+                if (task.evidence) {
+                    const evidenceIndicator = document.createElement('div');
+                    evidenceIndicator.className = "flex items-center space-x-1 text-[10px] bg-indigo-50 border border-indigo-100/50 text-indigo-700 py-1 px-2 rounded-lg font-medium";
+                    evidenceIndicator.innerHTML = `<i data-lucide="link" class="w-3 h-3"></i> <span class="truncate">Evidence attached</span>`;
+                    taskCard.appendChild(evidenceIndicator);
+                }
+
+                // Feedback Banner if manager leaves note
+                if (task.feedback) {
+                    const feedbackBanner = document.createElement('div');
+                    feedbackBanner.className = "bg-emerald-50 text-emerald-800 border border-emerald-100 py-1 px-2 rounded-lg text-[9px] font-bold line-clamp-1 flex items-center space-x-1";
+                    feedbackBanner.innerHTML = `<i data-lucide="check" class="w-2.5 h-2.5"></i> <span class="truncate">Feedback: ${task.feedback}</span>`;
+                    taskCard.appendChild(feedbackBanner);
+                }
+
+                // Footer metadata (Assignee & Due date)
+                const footer = document.createElement('div');
+                footer.className = "flex items-center justify-between border-t border-slate-100 pt-2 text-[10px] text-slate-500 font-medium";
+                
+                const assigneeDiv = document.createElement('div');
+                assigneeDiv.className = "flex items-center space-x-1";
+                assigneeDiv.innerHTML = `
+                    <div class="w-4 h-4 rounded-full bg-slate-200 text-slate-700 text-[8px] font-extrabold flex items-center justify-center border border-slate-300">
+                        ${task.assignee.charAt(0)}
+                    </div>
+                    <span>${task.assignee}</span>
+                `;
+
+                const dateDiv = document.createElement('div');
+                dateDiv.className = "flex items-center space-x-0.5 text-[9px]";
+                dateDiv.innerHTML = `<i data-lucide="calendar" class="w-3 h-3"></i> <span>${task.due}</span>`;
+
+                footer.appendChild(assigneeDiv);
+                footer.appendChild(dateDiv);
+                taskCard.appendChild(footer);
+
+                // Add to proper column
+                if (task.status === 'Backlog') {
+                    backlogCol.appendChild(taskCard);
+                } else if (task.status === 'In Progress') {
+                    inprogressCol.appendChild(taskCard);
+                } else if (task.status === 'Review') {
+                    reviewCol.appendChild(taskCard);
+                } else if (task.status === 'Complete') {
+                    completeCol.appendChild(taskCard);
+                }
+            });
+
+            // Update column header counts
+            document.getElementById('count-backlog').innerText = tasks.filter(t => t.status === 'Backlog').length;
+            document.getElementById('count-inprogress').innerText = tasks.filter(t => t.status === 'In Progress').length;
+            document.getElementById('count-review').innerText = tasks.filter(t => t.status === 'Review').length;
+            document.getElementById('count-complete').innerText = tasks.filter(t => t.status === 'Complete').length;
+
+            recalculateSummaryStats();
+            lucide.createIcons();
+        }
+
+        // SUBMIT CUSTOM TASK IN THE PORTAL
+        function handleCustomTaskSubmit(event) {
+            event.preventDefault();
+            const title = document.getElementById('task-modal-title').value;
+            const track = document.getElementById('task-modal-track').value;
+            const desc = document.getElementById('task-modal-desc').value;
+            const assignee = document.getElementById('task-modal-assignee').value;
+            const due = document.getElementById('task-modal-due').value;
+
+            const randomId = "TSK-" + Math.floor(Math.random() * 900 + 100);
+
+            const newTask = {
+                id: randomId,
+                title: title,
+                track: track,
+                desc: desc,
+                assignee: assignee,
+                due: due || "2026-06-30",
+                status: "Backlog",
+                evidence: "",
+                feedback: "",
+                activity: [{ date: "2026-06-02", note: `Created custom task assigned to ${assignee}` }]
+            };
+
+            tasks.unshift(newTask);
+            renderAllTasks();
+            toggleAddTaskModal(false);
+            
+            // Reset form fields
+            document.getElementById('task-modal-title').value = '';
+            document.getElementById('task-modal-desc').value = '';
+
+            showToast(`Task ${randomId} successfully added to board!`);
+        }
+
+        function toggleAddTaskModal(show) {
+            const modal = document.getElementById('add-task-modal');
+            if (show) {
+                modal.classList.remove('hidden');
+            } else {
+                modal.classList.add('hidden');
+            }
+        }
+
+        // KANBAN DETAIL MODAL MANAGEMENT
+        function openTaskDetailsModal(id) {
+            activeTaskIdForModal = id;
+            const task = tasks.find(t => t.id === id);
+            if (!task) return;
+
+            document.getElementById('detail-id').innerText = task.id;
+            document.getElementById('detail-title').innerText = task.title;
+            document.getElementById('detail-desc').innerText = task.desc;
+            document.getElementById('detail-assignee').innerText = task.assignee;
+            document.getElementById('detail-due').innerText = task.due;
+            document.getElementById('detail-evidence-link').value = task.evidence || "";
+
+            // Style track badge
+            const trackBadge = document.getElementById('detail-track-badge');
+            trackBadge.innerText = task.track.toUpperCase();
+            if (task.track === 'STEM Camps') {
+                trackBadge.className = "text-[10px] font-extrabold px-2.5 py-0.5 rounded bg-emerald-50 text-emerald-800 border border-emerald-200";
+            } else if (task.track === 'Client Solutions') {
+                trackBadge.className = "text-[10px] font-extrabold px-2.5 py-0.5 rounded bg-blue-50 text-blue-800 border border-blue-200";
+            } else if (task.track === 'OpenBraille') {
+                trackBadge.className = "text-[10px] font-extrabold px-2.5 py-0.5 rounded bg-amber-50 text-amber-800 border border-amber-200";
+            } else {
+                trackBadge.className = "text-[10px] font-extrabold px-2.5 py-0.5 rounded bg-purple-50 text-purple-800 border border-purple-200";
+            }
+
+            // Show or Hide Manager actions
+            const managerPanel = document.getElementById('detail-feedback-input-area');
+            const internEvidencePanel = document.getElementById('detail-evidence-area');
+            if (currentUserRole === 'manager') {
+                managerPanel.classList.remove('hidden');
+                internEvidencePanel.classList.add('hidden');
+                document.getElementById('detail-manager-feedback-note').value = task.feedback || "";
+            } else {
+                managerPanel.classList.add('hidden');
+                internEvidencePanel.classList.remove('hidden');
+            }
+
+            // Build activity/comment log HTML
+            buildTaskActivityList(task);
+
+            document.getElementById('task-details-modal').classList.remove('hidden');
+            lucide.createIcons();
+        }
+
+        function toggleTaskDetailsModal(show) {
+            const modal = document.getElementById('task-details-modal');
+            if (show) {
+                modal.classList.remove('hidden');
+            } else {
+                modal.classList.add('hidden');
+                activeTaskIdForModal = null;
+            }
+        }
+
+        // Action inside Modal - Submit deliverables link as intern
+        function submitTaskEvidence() {
+            if (!activeTaskIdForModal) return;
+            const linkInput = document.getElementById('detail-evidence-link').value;
+            if (!linkInput) {
+                showToast("Please enter a valid deliverable URL link first!");
+                return;
+            }
+
+            const task = tasks.find(t => t.id === activeTaskIdForModal);
+            if (task) {
+                task.evidence = linkInput;
+                // Auto transition to review when evidence is submitted
+                task.status = "Review";
+                task.activity.unshift({
+                    date: "2026-06-02",
+                    note: `Intern updated evidence link: ${linkInput} and requested manager review.`
+                });
+
+                renderAllTasks();
+                buildTaskActivityList(task);
+                toggleTaskDetailsModal(false);
+                showToast("Deliverable evidence attached! Task status shifted to 'In Review'.");
+            }
+        }
+
+        // Action inside Modal - Manager changes status / comments
+        function changeTaskStatusFromDetail(newStatus) {
+            if (!activeTaskIdForModal) return;
+            const task = tasks.find(t => t.id === activeTaskIdForModal);
+            if (!task) return;
+
+            const feedbackNoteInput = document.getElementById('detail-manager-feedback-note').value;
+            task.status = newStatus;
+            
+            if (feedbackNoteInput) {
+                task.feedback = feedbackNoteInput;
+                task.activity.unshift({
+                    date: "2026-06-02",
+                    note: `Manager left review feedback: "${feedbackNoteInput}"`
+                });
+            }
+
+            task.activity.unshift({
+                date: "2026-06-02",
+                note: `Manager set task status to ${newStatus}`
+            });
+
+            renderAllTasks();
+            buildTaskActivityList(task);
+            toggleTaskDetailsModal(false);
+            showToast(`Task successfully moved to ${newStatus}.`);
+        }
+
+        function buildTaskActivityList(task) {
+            const activityFeed = document.getElementById('detail-activity-feed');
+            activityFeed.innerHTML = "";
+
+            if (!task.activity || task.activity.length === 0) {
+                activityFeed.innerHTML = `<p class="text-[10px] text-slate-400 italic">No activity logged yet.</p>`;
+                return;
+            }
+
+            task.activity.forEach(act => {
+                const item = document.createElement('div');
+                item.className = "bg-slate-50 p-2 rounded border border-slate-100 text-[10px] space-y-0.5";
+                item.innerHTML = `
+                    <div class="flex justify-between font-bold text-slate-500">
+                        <span>Status Update</span>
+                        <span>${act.date}</span>
+                    </div>
+                    <p class="text-slate-600 font-medium leading-relaxed">${act.note}</p>
+                `;
+                activityFeed.appendChild(item);
+            });
+        }
+
+        // DAILY LOGS AND REFLECTION ENGINES
+        function setLogFormType(type) {
+            selectedFormType = type;
+            const btnDaily = document.getElementById('btn-form-daily');
+            const btnWeekly = document.getElementById('btn-form-weekly');
+            const formDaily = document.getElementById('form-daily');
+            const formWeekly = document.getElementById('form-weekly');
+
+            if (type === 'daily') {
+                btnDaily.className = "flex-1 py-1.5 rounded-md text-xs font-bold transition-all duration-150 bg-white text-indigo-600 shadow-sm";
+                btnWeekly.className = "flex-1 py-1.5 rounded-md text-xs font-bold transition-all duration-150 text-slate-500 hover:text-slate-800";
+                formDaily.classList.remove('hidden');
+                formWeekly.classList.add('hidden');
+            } else {
+                btnWeekly.className = "flex-1 py-1.5 rounded-md text-xs font-bold transition-all duration-150 bg-white text-indigo-600 shadow-sm";
+                btnDaily.className = "flex-1 py-1.5 rounded-md text-xs font-bold transition-all duration-150 text-slate-500 hover:text-slate-800";
+                formWeekly.classList.remove('hidden');
+                formDaily.classList.add('hidden');
+            }
+        }
+
+        // DAILY SUBMISSION EVENT
+        function handleDailyLogSubmit(event) {
+            event.preventDefault();
+            const track = document.getElementById('daily-track').value;
+            const name = document.getElementById('daily-name').value;
+            const hours = document.getElementById('daily-hours').value;
+            const completed = document.getElementById('daily-completed').value;
+            const challenges = document.getElementById('daily-challenges').value;
+            const link = document.getElementById('daily-link').value;
+
+            const newLog = {
+                id: "LOG-" + Math.floor(Math.random() * 900 + 100),
+                type: "daily",
+                intern: name,
+                track: track,
+                hours: parseFloat(hours),
+                timestamp: "Just Now",
+                data: {
+                    completed: completed,
+                    challenges: challenges || "None",
+                    link: link
+                },
+                feedback: ""
+            };
+
+            logs.unshift(newLog);
+            renderLogsStream();
+            
+            // Reset description inputs
+            document.getElementById('daily-completed').value = '';
+            document.getElementById('daily-challenges').value = '';
+            document.getElementById('daily-link').value = '';
+
+            recalculateSummaryStats();
+            showToast("Success! Daily 2-Minute log submitted successfully.");
+        }
+
+        // WEEKLY REFLECTION SUBMISSION EVENT
+        function handleWeeklyLogSubmit(event) {
+            event.preventDefault();
+            const name = document.getElementById('weekly-name').value;
+            const hours = document.getElementById('weekly-hours').value;
+            const wins = document.getElementById('weekly-wins').value;
+            const challenge = document.getElementById('weekly-challenge').value;
+            const learning = document.getElementById('weekly-learning').value;
+            const goals = document.getElementById('weekly-goals').value;
+            const questions = document.getElementById('weekly-mentor-questions').value;
+
+            const newLog = {
+                id: "LOG-" + Math.floor(Math.random() * 900 + 100),
+                type: "weekly",
+                intern: name,
+                track: "Multiple Tracks",
+                hours: parseFloat(hours),
+                timestamp: "Just Now",
+                data: {
+                    wins: wins,
+                    challenges: challenge,
+                    learning: learning,
+                    goals: goals,
+                    questions: questions || "None"
+                },
+                feedback: ""
+            };
+
+            logs.unshift(newLog);
+            renderLogsStream();
+
+            // Clear textareas
+            document.getElementById('weekly-wins').value = '';
+            document.getElementById('weekly-challenge').value = '';
+            document.getElementById('weekly-learning').value = '';
+            document.getElementById('weekly-goals').value = '';
+            document.getElementById('weekly-mentor-questions').value = '';
+
+            recalculateSummaryStats();
+            showToast("Success! Weekly reflection compiled.");
+        }
+
+        // STREAM RENDERER (DAILY LOGS)
+        function renderLogsStream() {
+            const listContainer = document.getElementById('logs-list-container');
+            listContainer.innerHTML = "";
+
+            const filtered = logs.filter(log => {
+                if (selectedLogFilter === 'all') return true;
+                return log.type === selectedLogFilter;
+            });
+
+            if (filtered.length === 0) {
+                listContainer.innerHTML = `
+                    <div class="text-center py-8 text-slate-400 text-xs">
+                        <i data-lucide="archive" class="w-8 h-8 mx-auto mb-2 opacity-50"></i>
+                        <p>No matching submissions logged yet.</p>
+                    </div>
+                `;
+                lucide.createIcons();
+                return;
+            }
+
+            filtered.forEach(log => {
+                const logCard = document.createElement('div');
+                
+                if (log.type === 'daily') {
+                    // Daily Log Styling
+                    logCard.className = "bg-slate-50 border border-slate-200 rounded-xl p-4 space-y-3";
+                    logCard.innerHTML = `
+                        <div class="flex items-start justify-between">
+                            <div class="flex items-center space-x-2">
+                                <span class="text-xs font-bold text-slate-800">${log.intern}</span>
+                                <span class="text-[9px] bg-indigo-100 text-indigo-700 font-extrabold px-1.5 py-0.5 rounded uppercase tracking-wider">${log.track}</span>
+                            </div>
+                            <span class="text-[9px] text-slate-400 font-semibold">${log.timestamp}</span>
+                        </div>
+                        
+                        <div class="space-y-1 text-xs">
+                            <p class="font-bold text-slate-700">Today's Deliverable Work:</p>
+                            <p class="text-slate-500 leading-relaxed">${log.data.completed}</p>
+                        </div>
+
+                        ${log.data.challenges && log.data.challenges !== "None" ? `
+                            <div class="space-y-1 text-xs border-l-2 border-amber-400 pl-2">
+                                <p class="font-bold text-amber-900">Challenges / Blockers:</p>
+                                <p class="text-slate-500 leading-relaxed">${log.data.challenges}</p>
+                            </div>
+                        ` : ''}
+
+                        <div class="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-slate-100 text-[10px]">
+                            <div class="flex items-center space-x-2">
+                                <span class="bg-indigo-50 text-indigo-700 px-2 py-0.5 rounded font-bold">${log.hours} hours logged</span>
+                                ${log.data.link ? `<a href="${log.data.link}" target="_blank" class="text-indigo-600 font-bold hover:underline inline-flex items-center"><i data-lucide="link-2" class="w-3 h-3 mr-0.5"></i> Deliverable Asset</a>` : ''}
+                            </div>
+                            <span class="text-slate-400 font-semibold text-[8px] uppercase tracking-wide">ID: ${log.id}</span>
+                        </div>
+
+                        <!-- Feedback Box section -->
+                        <div class="mt-2" id="feedback-box-${log.id}">
+                            ${buildFeedbackBoxHtml(log)}
+                        </div>
+                    `;
+                } else {
+                    // Weekly Reflection Styling
+                    logCard.className = "bg-gradient-to-r from-indigo-50/50 to-purple-50/40 border border-indigo-100 rounded-xl p-4 space-y-4";
+                    logCard.innerHTML = `
+                        <div class="flex items-start justify-between">
+                            <div class="flex items-center space-x-2">
+                                <span class="text-xs font-bold text-slate-800">${log.intern}</span>
+                                <span class="text-[9px] bg-purple-600 text-white font-extrabold px-1.5 py-0.5 rounded uppercase tracking-wider">WEEKLY REFLECTION</span>
+                            </div>
+                            <span class="text-[9px] text-slate-400 font-semibold">${log.timestamp}</span>
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
+                            <div class="space-y-0.5">
+                                <p class="font-bold text-slate-700">🚀 Successes & Wins</p>
+                                <p class="text-slate-500 leading-relaxed">${log.data.wins}</p>
+                            </div>
+                            <div class="space-y-0.5">
+                                <p class="font-bold text-slate-700">🧩 Roadblocks Met</p>
+                                <p class="text-slate-500 leading-relaxed">${log.data.challenges}</p>
+                            </div>
+                            <div class="space-y-0.5">
+                                <p class="font-bold text-slate-700">💡 Critical Insight/Learning</p>
+                                <p class="text-slate-500 leading-relaxed">${log.data.learning}</p>
+                            </div>
+                            <div class="space-y-0.5">
+                                <p class="font-bold text-slate-700">🎯 Goals Next Week</p>
+                                <p class="text-slate-500 leading-relaxed">${log.data.goals}</p>
+                            </div>
+                        </div>
+
+                        ${log.data.questions && log.data.questions !== "None" ? `
+                            <div class="bg-amber-50/70 border border-amber-100 p-2.5 rounded-lg text-xs space-y-0.5">
+                                <p class="font-bold text-amber-800">🙋 Question for Advisor:</p>
+                                <p class="text-slate-600 leading-relaxed italic">"${log.data.questions}"</p>
+                            </div>
+                        ` : ''}
+
+                        <div class="flex justify-between items-center pt-2 border-t border-slate-100 text-[10px]">
+                            <span class="bg-indigo-600 text-white px-2.5 py-0.5 rounded-full font-bold">${log.hours} Weekly Hours Completed</span>
+                            <span class="text-slate-400 font-semibold text-[8px] uppercase tracking-wide">ID: ${log.id}</span>
+                        </div>
+
+                        <!-- Feedback Box section -->
+                        <div class="mt-2" id="feedback-box-${log.id}">
+                            ${buildFeedbackBoxHtml(log)}
+                        </div>
+                    `;
+                }
+
+                listContainer.appendChild(logCard);
+            });
+
+            lucide.createIcons();
+        }
+
+        // FEEDBACK PORTAL WRAPPER HTML
+        function buildFeedbackBoxHtml(log) {
+            if (log.feedback) {
+                return `
+                    <div class="bg-emerald-50 text-emerald-800 border border-emerald-100 rounded-lg p-2.5 text-xs space-y-1">
+                        <div class="flex items-center space-x-1 font-bold text-emerald-900">
+                            <i data-lucide="message-square" class="w-3.5 h-3.5"></i>
+                            <span>Advisor Review Note:</span>
+                        </div>
+                        <p class="leading-relaxed font-medium">"${log.feedback}"</p>
+                    </div>
+                `;
+            }
+
+            if (currentUserRole === 'manager') {
+                return `
+                    <div class="bg-indigo-50/50 border border-indigo-100 rounded-lg p-2.5 space-y-2">
+                        <p class="text-[10px] font-bold text-indigo-900">Pending Advisor Review:</p>
+                        <div class="flex gap-2">
+                            <input type="text" id="feedback-input-${log.id}" placeholder="Type quick review comments..." class="flex-1 text-xs p-2.5 rounded-lg border border-slate-200 focus:outline-none bg-white">
+                            <button onclick="submitLogFeedback('${log.id}')" class="px-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-xs font-bold">Post Feedback</button>
+                        </div>
+                    </div>
+                `;
+            }
+
+            return `
+                <p class="text-[10px] text-slate-400 italic">No feedback posted yet.</p>
+            `;
+        }
+
+        // Post Feedback as Manager
+        function submitLogFeedback(logId) {
+            const inputField = document.getElementById(`feedback-input-${logId}`);
+            if (!inputField || !inputField.value) {
+                showToast("Please write a comment before posting!");
+                return;
+            }
+
+            const logItem = logs.find(l => l.id === logId);
+            if (logItem) {
+                logItem.feedback = inputField.value;
+                renderLogsStream();
+                recalculateSummaryStats();
+                showToast("Advisor feedback successfully logged!");
+            }
+        }
+
+        function filterLogs(filterType) {
+            selectedLogFilter = filterType;
+            
+            const btnAll = document.getElementById('log-filter-all');
+            const btnDaily = document.getElementById('log-filter-daily');
+            const btnWeekly = document.getElementById('log-filter-weekly');
+
+            btnAll.className = "px-2 py-1 text-slate-500";
+            btnDaily.className = "px-2 py-1 text-slate-500";
+            btnWeekly.className = "px-2 py-1 text-slate-500";
+
+            if (filterType === 'all') {
+                btnAll.className = "px-2 py-1 font-semibold text-slate-700 bg-white rounded-md shadow-sm";
+            } else if (filterType === 'daily') {
+                btnDaily.className = "px-2 py-1 font-semibold text-slate-700 bg-white rounded-md shadow-sm";
+            } else {
+                btnWeekly.className = "px-2 py-1 font-semibold text-slate-700 bg-white rounded-md shadow-sm";
+            }
+
+            renderLogsStream();
+        }
+
+        // TRAINING RESOURCES RENDERER
+        function renderResources() {
+            const gridContainer = document.getElementById('resources-grid-container');
+            gridContainer.innerHTML = "";
+
+            const filtered = resources.filter(res => {
+                if (selectedResourceFilter === 'all') return true;
+                return res.track === selectedResourceFilter;
+            });
+
+            filtered.forEach(res => {
+                const card = document.createElement('div');
+                card.className = "bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex flex-col justify-between hover:shadow-md transition-all";
+                card.innerHTML = `
+                    <div class="space-y-3">
+                        <div class="flex items-center justify-between">
+                            <span class="p-2 bg-indigo-50 text-indigo-600 rounded-xl inline-block">
+                                <i data-lucide="${res.icon || 'file-text'}" class="w-5 h-5"></i>
+                            </span>
+                            <span class="text-[9px] font-bold bg-slate-100 text-slate-500 border px-1.5 py-0.5 rounded uppercase tracking-wider">${res.track}</span>
+                        </div>
+                        <div>
+                            <h4 class="font-bold text-xs text-slate-800">${res.title}</h4>
+                            <p class="text-slate-500 text-[11px] mt-1.5 leading-relaxed">${res.desc}</p>
+                        </div>
+                    </div>
+
+                    <div class="pt-4 border-t border-slate-100 mt-4 flex items-center justify-between text-[10px]">
+                        <span class="text-slate-400">By: ${res.author}</span>
+                        <a href="javascript:void(0)" onclick="simulateResourceDownload('${res.title}')" class="text-indigo-600 hover:text-indigo-800 font-extrabold flex items-center">
+                            <span>${res.linkName}</span>
+                            <i data-lucide="arrow-right" class="w-3.5 h-3.5 ml-1"></i>
+                        </a>
+                    </div>
+                `;
+                gridContainer.appendChild(card);
+            });
+
+            lucide.createIcons();
+        }
+
+        function filterResources(track) {
+            selectedResourceFilter = track;
+            
+            const buttons = document.querySelectorAll('.res-tag-btn');
+            buttons.forEach(btn => {
+                btn.className = "res-tag-btn px-4 py-2 text-xs font-bold rounded-xl transition-all bg-white text-slate-600 border border-slate-200 hover:bg-slate-50";
+            });
+
+            // Re-apply focus styles based on active index
+            const target = event.currentTarget;
+            target.className = "res-tag-btn px-4 py-2 text-xs font-bold rounded-xl transition-all bg-indigo-600 text-white";
+
+            renderResources();
+        }
+
+        function simulateResourceDownload(title) {
+            showToast(`Simulated opening of resource: ${title}`);
+        }
+
+        // HELPER TOAST NOTIFIER
+        function showToast(message) {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            toast.className = "bg-slate-900 text-white text-xs px-4 py-3 rounded-xl shadow-xl border border-slate-700/50 flex items-center space-x-2 animate-fade-in transition-all duration-300";
+            toast.innerHTML = `
+                <i data-lucide="info" class="w-4 h-4 text-indigo-400"></i>
+                <span class="font-medium">${message}</span>
+            `;
+            container.appendChild(toast);
+            lucide.createIcons();
+
+            setTimeout(() => {
+                toast.classList.add('opacity-0');
+                setTimeout(() => {
+                    toast.remove();
+                }, 300);
+            }, 3500);
+        }
+
+    </script>
+</body>
+</html>
