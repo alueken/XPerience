@@ -62,6 +62,13 @@
                     <span id="btn-google-login-text">Continue with Google</span>
                 </button>
 
+                <!-- Sandbox Helper Notice Inside Onboarding Overlay -->
+                <div id="sandbox-onboarding-banner" class="bg-amber-50 border border-amber-200 rounded-xl p-3 text-center hidden">
+                    <p class="text-[10px] text-amber-800 font-semibold leading-relaxed">
+                        ⚠️ Running in Sandbox Offline-First Mode because Firebase credentials are not yet configured or connection timed out.
+                    </p>
+                </div>
+
                 <div class="relative flex items-center py-2">
                     <div class="flex-grow border-t border-slate-200"></div>
                     <span class="flex-shrink mx-4 text-slate-400 text-[10px] font-bold uppercase tracking-wider">or register profile</span>
@@ -828,6 +835,8 @@
         // Import Firebase & Firestore SDK elements safely
         import { initializeApp } from 'https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js';
         import { getAuth, signInWithCustomToken, signInAnonymously, onAuthStateChanged, GoogleAuthProvider, signInWithPopup } from 'https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js';
+        import { getFirestore, doc, setDoc, getDoc, collection, query, onSnapshot, addDoc, updateDoc } from 'https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js';
+
         // ----------------------------------------------------------------------
         // 1. CONFIGURE YOUR FIREBASE CREDENTIALS HERE!
         // ----------------------------------------------------------------------
@@ -850,12 +859,14 @@
         let appId = 'xperience-intern-cohort';
 
         try {
-            // Favor the explicit key setup, or check the system's token
             let activeConfig = null;
-            if (myHardcodedConfig && myHardcodedConfig.apiKey) {
+            
+            // IMPORTANT FIX: Prioritize the Canvas environment config if it exists so the Preview works
+            if (typeof __firebase_config !== 'undefined' && __firebase_config) {
+                activeConfig = typeof __firebase_config === 'string' ? JSON.parse(__firebase_config) : __firebase_config;
+            } else if (myHardcodedConfig && myHardcodedConfig.apiKey) {
+                // Fallback to your personal config when hosted externally (like GitHub Pages)
                 activeConfig = myHardcodedConfig;
-            } else {
-                activeConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : null;
             }
 
             if (!activeConfig || !activeConfig.apiKey) {
@@ -922,7 +933,7 @@
             }
         };
 
-        // SAFETY AUTHENTICATION TIMER: Launches Sandbox mode automatically if Firebase hangs (e.g. 3.5 seconds)
+        // SAFETY AUTHENTICATION TIMER: Launches Sandbox mode automatically if Firebase hangs (e.g. 8 seconds)
         const authTimeout = setTimeout(() => {
             if (!currentUserId) {
                 console.warn("Firebase Auth Connection took too long. Auto-launching safe local sandbox workspace.");
@@ -957,6 +968,7 @@
             document.getElementById('cohort-active-label').innerText = "Running Sandbox Offline Mode";
             document.getElementById('cohort-active-label').parentElement.className = "hidden md:flex items-center space-x-1.5 bg-amber-50 text-amber-700 px-3 py-1.5 rounded-full text-xs font-semibold";
             document.getElementById('btn-google-login-text').innerText = "Simulate Google Login";
+            document.getElementById('sandbox-onboarding-banner').classList.remove('hidden');
 
             loadLocalSandboxData();
 
@@ -1245,6 +1257,12 @@
                 return;
             }
             try {
+                // Check if we are running inside the Canvas preview environment where popups are blocked
+                if (typeof __firebase_config !== 'undefined' && __firebase_config) {
+                    showToast("Google pop-ups are blocked inside the preview editor. Please register below manually!");
+                    return;
+                }
+
                 const provider = new GoogleAuthProvider();
                 const result = await signInWithPopup(auth, provider);
                 const user = result.user;
